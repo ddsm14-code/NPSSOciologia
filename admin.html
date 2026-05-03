@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panel de Administración - Satisfacción del Cliente</title>
+    
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        /* ESTILOS GENERALES */
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+        body { display: flex; background-color: #f0f2f5; color: #333; height: 100vh; overflow: hidden; }
+
+        /* BARRA LATERAL (Menú) */
+        .sidebar { width: 250px; background-color: #1e293b; color: white; padding: 20px; display: flex; flex-direction: column; }
+        .sidebar h2 { font-size: 1.2rem; margin-bottom: 30px; color: #38bdf8; text-transform: uppercase; letter-spacing: 1px; }
+        .sidebar a { color: #cbd5e1; text-decoration: none; padding: 12px; margin-bottom: 10px; border-radius: 8px; transition: background 0.2s; }
+        .sidebar a:hover, .sidebar a.activo { background-color: #334155; color: white; }
+
+        /* CONTENIDO PRINCIPAL */
+        .main-content { flex: 1; padding: 30px; overflow-y: auto; }
+        .header-dashboard { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .header-dashboard h1 { font-size: 2rem; color: #0f172a; }
+
+        /* TARJETAS DE INDICADORES (KPIs) */
+        .kpi-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .kpi-card { background: white; padding: 20px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); flex: 1; border-top: 4px solid #38bdf8; }
+        .kpi-card h3 { font-size: 0.9rem; color: #64748b; margin-bottom: 10px; text-transform: uppercase; }
+        .kpi-card .valor { font-size: 2.5rem; font-weight: bold; color: #0f172a; }
+
+        /* ÁREA DE GRÁFICAS Y RECOMENDACIONES */
+        .grid-contenido { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .panel h3 { margin-bottom: 20px; color: #1e293b; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; }
+
+        /* LISTA DE SUGERENCIAS */
+        #lista-sugerencias { list-style-type: none; }
+        #lista-sugerencias li { background: #f8fafc; padding: 15px; margin-bottom: 10px; border-left: 4px solid #f59e0b; border-radius: 0 8px 8px 0; font-size: 0.95rem; line-height: 1.5; }
+        .alerta-negativa { border-left-color: #ef4444 !important; background: #fef2f2 !important; }
+        .alerta-positiva { border-left-color: #10b981 !important; background: #ecfdf5 !important; }
+    </style>
+</head>
+<body>
+
+    <nav class="sidebar">
+        <h2>SuperAdmin</h2>
+        <a href="#" class="activo">📊 Resumen General</a>
+        <a href="#">📅 Historial de Datos</a>
+        <a href="#">⚙️ Configuración</a>
+    </nav>
+
+    <main class="main-content">
+        <header class="header-dashboard">
+            <h1>Panel de Satisfacción al Cliente</h1>
+            <p>Datos actualizados: <strong>Tiempo Real (Memoria Local)</strong></p>
+        </header>
+
+        <section class="kpi-container">
+            <div class="kpi-card">
+                <h3>Total Encuestas Registradas</h3>
+                <div class="valor" id="kpi-total">0</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #10b981;">
+                <h3>Promedio de Satisfacción</h3>
+                <div class="valor" id="kpi-promedio">0.0 / 5</div>
+            </div>
+            <div class="kpi-card" style="border-top-color: #f59e0b;">
+                <h3>Sentimiento Dominante</h3>
+                <div class="valor" id="kpi-sentimiento">-</div>
+            </div>
+        </section>
+
+        <section class="grid-contenido">
+            <div class="panel">
+                <h3>Tendencia (Semana de Prueba)</h3>
+                <canvas id="graficaTendencias"></canvas>
+            </div>
+
+            <div class="panel">
+                <h3>💡 Sugerencias Automatizadas</h3>
+                <ul id="lista-sugerencias">
+                    </ul>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // 1. LEER DE LA MEMORIA
+        // Extraemos los votos que la encuesta guardó en el navegador
+        let historialVotos = JSON.parse(localStorage.getItem('votosSupermercado')) || [];
+
+        // Hacemos los cálculos matemáticos reales con los datos extraídos
+        let totalVotosHoy = historialVotos.length;
+        
+        // Sumamos todas las estrellas y sacamos el promedio
+        let sumaTotal = historialVotos.reduce((acumulador, valorActual) => acumulador + valorActual, 0);
+        
+        // Evitamos dividir por cero si aún no hay votos
+        let promedioHoy = totalVotosHoy > 0 ? (sumaTotal / totalVotosHoy).toFixed(1) : 0;
+
+        // 2. ACTUALIZAR LOS INDICADORES (KPIs) CON DATOS REALES
+        document.getElementById('kpi-total').textContent = totalVotosHoy;
+        document.getElementById('kpi-promedio').textContent = promedioHoy + ' / 5';
+        
+        let sentimiento = "Sin datos 😐";
+        if (totalVotosHoy > 0) {
+            if (promedioHoy >= 4) sentimiento = "Positivo 😁";
+            else if (promedioHoy < 3) sentimiento = "Negativo 🙁";
+            else sentimiento = "Neutral 😐";
+        }
+        document.getElementById('kpi-sentimiento').textContent = sentimiento;
+
+        // 3. MOTOR DE SUGERENCIAS AUTOMÁTICAS
+        function generarSugerencias(promedio, total) {
+            const lista = document.getElementById('lista-sugerencias');
+            lista.innerHTML = ''; 
+
+            if (total === 0) {
+                lista.innerHTML = `<li>Aún no hay votos registrados. Ve a tu archivo <b>encuesta.html</b> y haz un par de pruebas tocando las caritas. Luego recarga esta página.</li>`;
+                return;
+            }
+
+            if (promedio >= 4.0) {
+                lista.innerHTML += `<li class="alerta-positiva"><strong>¡Excelente trabajo!</strong> La satisfacción es alta. Considere crear un programa de lealtad para retener a estos clientes felices.</li>`;
+                lista.innerHTML += `<li class="alerta-positiva">Felicite a su personal de piso y cajas, el servicio actual está funcionando.</li>`;
+            } else if (promedio >= 3.0 && promedio < 4.0) {
+                lista.innerHTML += `<li><strong>Atención moderada:</strong> Hay clientes insatisfechos. Verifique si hay largas filas en las cajas en las horas pico.</li>`;
+                lista.innerHTML += `<li>Realice una pequeña auditoría de limpieza y disponibilidad de productos básicos.</li>`;
+            } else {
+                lista.innerHTML += `<li class="alerta-negativa"><strong>¡Alerta Crítica!</strong> La satisfacción está por debajo del estándar esperado.</li>`;
+                lista.innerHTML += `<li class="alerta-negativa">Revise inmediatamente el trato del personal en cajas y tiempos de espera. Se recomienda presencia gerencial en piso.</li>`;
+                lista.innerHTML += `<li class="alerta-negativa">Verifique que no haya equipos fallando (aires acondicionados, carritos en mal estado) que incomoden al cliente.</li>`;
+            }
+        }
+
+        // Ejecutamos las sugerencias
+        generarSugerencias(promedioHoy, totalVotosHoy);
+
+        // 4. GRÁFICA DE TENDENCIAS
+        // Mantenemos una base estática para días anteriores y usamos tu promedio real para "Hoy"
+        const contextoGrafica = document.getElementById('graficaTendencias').getContext('2d');
+        new Chart(contextoGrafica, {
+            type: 'line',
+            data: {
+                labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Hoy (Tus datos)'],
+                datasets: [{ 
+                    label: 'Promedio de Satisfacción', 
+                    data: [3.8, 4.0, 3.5, 2.8, 3.0, 3.1, promedioHoy], // Usa tu promedio real al final
+                    borderColor: '#38bdf8', 
+                    backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4
+                }]
+            },
+            options: { scales: { y: { beginAtZero: true, max: 5 } } }
+        });
+    </script>
+</body>
+</html>
