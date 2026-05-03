@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Encuesta de Satisfacción</title>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            user-select: none; /* Evita que el texto se sombree en azul al tocar */
+            touch-action: manipulation; /* Optimiza los toques en la pantalla */
+        }
+
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background-color: #ffffff;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .contenedor-principal {
+            width: 90%;
+            max-width: 1600px;
+        }
+
+        .titulo {
+            color: #1a1a1a;
+            font-size: 4.5rem;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .subtitulo {
+            font-size: 2.5rem;
+            color: #4a4a4a;
+            margin-bottom: 80px;
+        }
+
+        .grupo-opciones {
+            display: flex;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .boton-opcion {
+            background-color: #f8f9fa;
+            border: 4px solid #dee2e6;
+            border-radius: 20px;
+            padding: 40px 20px;
+            width: 100%;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: background-color 0.1s, border-color 0.1s;
+        }
+
+        .boton-opcion:active {
+            background-color: #e2e6ea;
+            border-color: #0056b3;
+            transform: scale(0.95);
+        }
+
+        .emoji {
+            font-size: 8rem;
+            margin-bottom: 20px;
+        }
+
+        .etiqueta {
+            font-size: 2rem;
+            color: #333;
+            font-weight: bold;
+        }
+
+        .oculto {
+            display: none !important;
+        }
+
+        .mensaje-exito {
+            background-color: #e8f5e9;
+            padding: 80px;
+            border-radius: 30px;
+            border: 4px solid #4caf50;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="contenedor-principal" id="encuesta">
+        <h1 class="titulo">¡Gracias por preferirnos!</h1>
+        <p class="subtitulo">¿Cómo califica la atención que recibió hoy?</p>
+        
+        <div class="grupo-opciones">
+            <button class="boton-opcion" data-valor="1">
+                <span class="emoji">😠</span>
+                <span class="etiqueta">Muy Mala</span>
+            </button>
+            <button class="boton-opcion" data-valor="2">
+                <span class="emoji">🙁</span>
+                <span class="etiqueta">Mala</span>
+            </button>
+            <button class="boton-opcion" data-valor="3">
+                <span class="emoji">😐</span>
+                <span class="etiqueta">Regular</span>
+            </button>
+            <button class="boton-opcion" data-valor="4">
+                <span class="emoji">🙂</span>
+                <span class="etiqueta">Buena</span>
+            </button>
+            <button class="boton-opcion" data-valor="5">
+                <span class="emoji">😁</span>
+                <span class="etiqueta">Excelente</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="contenedor-principal oculto" id="agradecimiento">
+        <div class="mensaje-exito">
+            <h1 class="titulo">¡Muchas gracias!</h1>
+            <p class="subtitulo">Su opinión nos ayuda a brindarle un mejor servicio.</p>
+        </div>
+    </div>
+
+    <script>
+        const botones = document.querySelectorAll('.boton-opcion');
+        const seccionEncuesta = document.getElementById('encuesta');
+        const seccionAgradecimiento = document.getElementById('agradecimiento');
+
+        function registrarCalificacion(evento) {
+            const botonTocado = evento.currentTarget;
+            const valor = parseInt(botonTocado.getAttribute('data-valor'));
+
+            // --- CONEXIÓN: GUARDAR EN MEMORIA (LOCALSTORAGE) ---
+            // 1. Buscamos si ya hay votos guardados antes, si no, creamos una lista vacía
+            let historialVotos = JSON.parse(localStorage.getItem('votosSupermercado')) || [];
+            
+            // 2. Agregamos el nuevo voto a la lista
+            historialVotos.push(valor);
+            
+            // 3. Guardamos la lista actualizada en la memoria del navegador
+            localStorage.setItem('votosSupermercado', JSON.stringify(historialVotos));
+            // ---------------------------------------------------
+
+            // Transición visual
+            seccionEncuesta.classList.add('oculto');
+            seccionAgradecimiento.classList.remove('oculto');
+
+            // Regresa a la pantalla inicial en 4 segundos
+            setTimeout(() => {
+                seccionAgradecimiento.classList.add('oculto');
+                seccionEncuesta.classList.remove('oculto');
+            }, 4000);
+        }
+
+        // Asignamos la función a cada botón
+        botones.forEach(boton => {
+            boton.addEventListener('click', registrarCalificacion);
+        });
+    </script>
+
+</body>
+</html>
