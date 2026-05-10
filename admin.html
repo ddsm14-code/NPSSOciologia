@@ -7,6 +7,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <style>
@@ -32,10 +34,17 @@
                 <span>📊</span> Dashboard Analítico
             </a>
             <a href="#" class="flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all">
-                <span>📝</span> Respuestas en Vivo
+                <span>⚙️</span> Configuración General
             </a>
             <a href="#" class="flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all">
-                <span>⚙️</span> Configuración
+                <span>🎨</span> Personalizar Encuesta
+            </a>
+            <a href="#" class="flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all">
+                <span>🔔</span> Alertas y Notificaciones
+            </a>
+            <div class="pt-4 mt-2 border-t border-slate-800"></div>
+            <a href="#" onclick="abrirModalExportar()" class="flex items-center gap-3 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-3 rounded-xl border border-slate-600 transition-all cursor-pointer">
+                <span>📥</span> Exportar PDF
             </a>
         </nav>
         <div class="p-4 border-t border-slate-800">
@@ -148,6 +157,45 @@
             </section>
         </div>
     </main>
+
+    <div id="modal-exportar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform transition-all">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">Generar Reporte PDF</h3>
+                <button onclick="cerrarModalExportar()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Rango de Datos</label>
+                    <select id="exportar-rango" class="w-full border-slate-300 rounded-lg shadow-sm p-2.5 bg-slate-50 border focus:ring-blue-500 focus:border-blue-500 outline-none" onchange="toggleFechasPDF()">
+                        <option value="total">Historial Completo</option>
+                        <option value="fechas">Por Rango de Fechas</option>
+                    </select>
+                </div>
+
+                <div id="contenedor-fechas" class="hidden grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Desde</label>
+                        <input type="date" id="fecha-inicio" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hasta</label>
+                        <input type="date" id="fecha-fin" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="cerrarModalExportar()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
+                <button onclick="generarReportePDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
+                    <span>📥</span> Descargar Datos
+                </button>
+            </div>
+        </div>
+    </div>
 
     <script>
         // Variables globales para las instancias de las gráficas
@@ -462,6 +510,106 @@
                 localStorage.removeItem('encuestasUniversidad');
                 actualizarDashboard();
             }
+        }
+
+        function abrirModalExportar() {
+            document.getElementById('modal-exportar').classList.remove('hidden');
+        }
+
+        function cerrarModalExportar() {
+            document.getElementById('modal-exportar').classList.add('hidden');
+        }
+
+        function toggleFechasPDF() {
+            const rango = document.getElementById('exportar-rango').value;
+            const contenedorFechas = document.getElementById('contenedor-fechas');
+            if (rango === 'fechas') {
+                contenedorFechas.classList.remove('hidden');
+                contenedorFechas.classList.add('grid');
+            } else {
+                contenedorFechas.classList.add('hidden');
+                contenedorFechas.classList.remove('grid');
+            }
+        }
+
+        function generarReportePDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+            
+            let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+            const rango = document.getElementById('exportar-rango').value;
+
+            // Filtrar por fechas si el usuario seleccionó la opción
+            if (rango === 'fechas') {
+                const fechaInicio = document.getElementById('fecha-inicio').value;
+                const fechaFin = document.getElementById('fecha-fin').value;
+                
+                if (!fechaInicio || !fechaFin) {
+                    alert("Por favor selecciona ambas fechas para exportar el rango.");
+                    return;
+                }
+
+                // Ajustar horas para abarcar los días completos
+                const inicio = new Date(fechaInicio);
+                inicio.setHours(0,0,0,0);
+                const fin = new Date(fechaFin);
+                fin.setHours(23,59,59,999);
+
+                datos = datos.filter(enc => {
+                    if(!enc.fecha) return false;
+                    const fechaEnc = new Date(enc.fecha);
+                    return fechaEnc >= inicio && fechaEnc <= fin;
+                });
+            }
+
+            if (datos.length === 0) {
+                alert("No hay encuestas registradas en este rango de fechas.");
+                return;
+            }
+
+            // 1. Cabecera del PDF
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text("Reporte de Satisfacción - UnivAdmin", 14, 20);
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            const fechaHoy = new Date().toLocaleDateString();
+            doc.text(`Fecha de emisión del reporte: ${fechaHoy}`, 14, 28);
+            doc.text(`Total de encuestas exportadas: ${datos.length}`, 14, 34);
+
+            // 2. Preparar los datos para la tabla
+            const columnas = ["Fecha", "Hora", "Pagos (Q1)", "Espera (Q2)", "Info (Q3)", "General (Q4)", "Promedio"];
+            const filas = [];
+
+            datos.forEach(enc => {
+                const fechaObj = enc.fecha ? new Date(enc.fecha) : new Date();
+                const fecha = fechaObj.toLocaleDateString();
+                const hora = fechaObj.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                
+                const p1 = enc.pregunta_1 || 0;
+                const p2 = enc.pregunta_2 || 0;
+                const p3 = enc.pregunta_3 || 0;
+                const p4 = enc.pregunta_4 || 0;
+                const prom = ((p1 + p2 + p3 + p4) / 4).toFixed(2);
+
+                filas.push([fecha, hora, p1, p2, p3, p4, prom]);
+            });
+
+            // 3. Dibujar la tabla en el documento PDF
+            doc.autoTable({
+                head: [columnas],
+                body: filas,
+                startY: 42,
+                theme: 'striped',
+                headStyles: { fillColor: [30, 41, 59] }, // Color slate-800
+                styles: { font: 'helvetica', fontSize: 9, halign: 'center' },
+                columnStyles: { 0: { halign: 'left' }, 1: { halign: 'left' } }
+            });
+
+            // 4. Iniciar descarga
+            doc.save(`Reporte_Satisfaccion_${Date.now()}.pdf`);
+            cerrarModalExportar();
         }
 
         // Inicializar al cargar
