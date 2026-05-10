@@ -30,7 +30,7 @@
     <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-xl z-20 shrink-0">
         <div class="p-6 border-b border-slate-800">
             <h2 class="text-2xl font-bold text-blue-400 flex items-center gap-2">
-                <span>🎓</span> UnivAdmin
+                <span>🎓</span> <span id="logo-texto">UnivAdmin</span>
             </h2>
             <p class="text-slate-400 text-sm mt-1">Centro de Inteligencia</p>
         </div>
@@ -170,7 +170,7 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                        <input type="text" value="Universidad Nacional" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        <input type="text" id="input-nombre-institucion" value="Universidad Nacional" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
@@ -187,7 +187,7 @@
                         </div>
                     </div>
                     <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarFalso('Configuración guardada correctamente')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
+                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
                             Guardar Cambios
                         </button>
                     </div>
@@ -416,6 +416,13 @@
             mostrarNotificacion(mensaje);
         }
 
+        function guardarConfiguracion() {
+            const nuevoNombre = document.getElementById('input-nombre-institucion').value;
+            document.getElementById('logo-texto').textContent = nuevoNombre || 'UnivAdmin';
+            localStorage.setItem('nombreInstitucion', nuevoNombre);
+            mostrarNotificacion('Configuración guardada correctamente');
+        }
+
         // Sistema de Modales Personalizados (Reemplazo de confirm y prompt nativos)
         function abrirModalLimpiar() {
             const modal = document.getElementById('modal-limpiar');
@@ -486,7 +493,7 @@
             }
 
             let sumas = { p1: 0, p2: 0, p3: 0, p4: 0, totalGlobal: 0 };
-            let turnos = { mañana: { suma: 0, count: 0 }, tarde: { suma: 0, count: 0 }, noche: { suma: 0, count: 0 } };
+            let turnos = { mañana: { suma: 0, count: 0 }, tarde: { suma: 0, count: 0 } };
             let distribucion = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
             datos.forEach(enc => {
@@ -506,9 +513,8 @@
 
                 if(enc.fecha) {
                     const hora = new Date(enc.fecha).getHours();
-                    if (hora >= 6 && hora < 13) { turnos.mañana.suma += valorEvaluado; turnos.mañana.count++; }
-                    else if (hora >= 13 && hora < 18) { turnos.tarde.suma += valorEvaluado; turnos.tarde.count++; }
-                    else { turnos.noche.suma += valorEvaluado; turnos.noche.count++; }
+                    if (hora >= 8 && hora < 13) { turnos.mañana.suma += valorEvaluado; turnos.mañana.count++; }
+                    else if (hora >= 13 && hora < 17) { turnos.tarde.suma += valorEvaluado; turnos.tarde.count++; }
                 }
             });
 
@@ -519,8 +525,7 @@
             const promedioSeleccionado = (sumas.totalGlobal / totalEncuestas).toFixed(2);
             const promTurnos = {
                 mañana: turnos.mañana.count > 0 ? (turnos.mañana.suma / turnos.mañana.count).toFixed(2) : 0,
-                tarde: turnos.tarde.count > 0 ? (turnos.tarde.suma / turnos.tarde.count).toFixed(2) : 0,
-                noche: turnos.noche.count > 0 ? (turnos.noche.suma / turnos.noche.count).toFixed(2) : 0
+                tarde: turnos.tarde.count > 0 ? (turnos.tarde.suma / turnos.tarde.count).toFixed(2) : 0
             };
 
             document.getElementById('kpi-promedio').textContent = promedioSeleccionado;
@@ -568,14 +573,14 @@
             if (chartTurnos) chartTurnos.destroy();
             const ctxTurnos = document.getElementById('graficaTurnos').getContext('2d');
             let turnoColor = '#6366f1';
-            if (parseFloat(turnos.tarde) < 3.0 || parseFloat(turnos.noche) < 3.0) turnoColor = '#ef4444';
+            if (parseFloat(turnos.tarde) < 3.0) turnoColor = '#ef4444';
 
             chartTurnos = new Chart(ctxTurnos, {
                 type: 'line',
                 data: {
-                    labels: ['Mañana (6am-1pm)', 'Tarde (1pm-6pm)', 'Noche (6pm-12am)'],
+                    labels: ['Mañana (8am-1pm)', 'Tarde (1pm-5pm)'],
                     datasets: [{
-                        label: 'Satisfacción por Turno', data: [turnos.mañana, turnos.tarde, turnos.noche],
+                        label: 'Satisfacción por Turno', data: [turnos.mañana, turnos.tarde],
                         borderColor: turnoColor, backgroundColor: turnoColor + '33', borderWidth: 3,
                         pointBackgroundColor: '#fff', pointBorderColor: turnoColor, pointBorderWidth: 2, pointRadius: 6, fill: true, tension: 0.4
                     }]
@@ -656,9 +661,9 @@
             let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
             let ahora = new Date();
             for (let i = 0; i < 50; i++) {
-                let horaAleatoria = Math.floor(Math.random() * 12) + 8;
+                let horaAleatoria = Math.floor(Math.random() * 9) + 8; // Entre 8 y 16 (8am a 4:59pm)
                 let fechaFalsa = new Date(ahora); fechaFalsa.setHours(horaAleatoria);
-                let penTarde = (horaAleatoria >= 14 && horaAleatoria <= 17) ? 2 : 0;
+                let penTarde = (horaAleatoria >= 13 && horaAleatoria <= 16) ? 2 : 0;
                 datos.push({
                     pregunta_1: Math.floor(Math.random() * 2) + 3,
                     pregunta_2: Math.max(1, Math.floor(Math.random() * 3) + 3 - penTarde),
@@ -716,7 +721,14 @@
             mostrarNotificacion('PDF descargado con éxito');
         }
 
-        window.onload = actualizarDashboard;
+        window.onload = function() {
+            const nombreGuardado = localStorage.getItem('nombreInstitucion');
+            if (nombreGuardado) {
+                document.getElementById('logo-texto').textContent = nombreGuardado;
+                document.getElementById('input-nombre-institucion').value = nombreGuardado;
+            }
+            actualizarDashboard();
+        };
     </script>
 </body>
 </html>
