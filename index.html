@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Encuesta de Satisfacción</title>
+    <title>Encuesta de Satisfacción Universitaria</title>
     
     <style>
         * {
@@ -13,8 +13,8 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background-color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
             margin: 0;
             height: 100vh;
             display: flex;
@@ -25,55 +25,73 @@
 
         .contenedor-principal {
             width: 90%;
-            max-width: 1600px;
+            max-width: 1200px;
+            background-color: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
         .titulo {
-            color: #1a1a1a;
-            font-size: 4.5rem;
+            color: #2c3e50;
+            font-size: 3rem;
             margin-bottom: 10px;
             font-weight: bold;
         }
 
         .subtitulo {
-            font-size: 2.5rem;
-            color: #4a4a4a;
-            margin-bottom: 80px;
+            font-size: 1.8rem;
+            color: #7f8c8d;
+            margin-bottom: 60px;
+        }
+
+        .pregunta-texto {
+            font-size: 2.2rem;
+            color: #34495e;
+            margin-bottom: 40px;
+            font-weight: 600;
         }
 
         .grupo-opciones {
             display: flex;
             justify-content: space-between;
-            gap: 20px;
+            gap: 15px;
+            flex-wrap: wrap; /* Permite que se adapten en pantallas pequeñas */
         }
 
         .boton-opcion {
-            background-color: #f8f9fa;
-            border: 4px solid #dee2e6;
-            border-radius: 20px;
-            padding: 40px 20px;
-            width: 100%;
+            background-color: #ffffff;
+            border: 3px solid #ecf0f1;
+            border-radius: 15px;
+            padding: 30px 15px;
+            flex: 1;
+            min-width: 150px;
             cursor: pointer;
             display: flex;
             flex-direction: column;
             align-items: center;
-            transition: background-color 0.1s, border-color 0.1s;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+
+        .boton-opcion:hover {
+            border-color: #3498db;
+            background-color: #f0f8ff;
+            transform: translateY(-5px);
         }
 
         .boton-opcion:active {
-            background-color: #e2e6ea;
-            border-color: #0056b3;
             transform: scale(0.95);
         }
 
         .emoji {
-            font-size: 8rem;
-            margin-bottom: 20px;
+            font-size: 5rem;
+            margin-bottom: 15px;
         }
 
         .etiqueta {
-            font-size: 2rem;
-            color: #333;
+            font-size: 1.2rem;
+            color: #2c3e50;
             font-weight: bold;
         }
 
@@ -82,85 +100,163 @@
         }
 
         .mensaje-exito {
-            background-color: #e8f5e9;
-            padding: 80px;
-            border-radius: 30px;
-            border: 4px solid #4caf50;
+            background-color: #e8f8f5;
+            padding: 60px;
+            border-radius: 20px;
+            border: 3px solid #2ecc71;
+        }
+
+        .indicador-progreso {
+            margin-top: 40px;
+            color: #bdc3c7;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        /* Adaptabilidad para móviles */
+        @media (max-width: 768px) {
+            .titulo { font-size: 2rem; }
+            .subtitulo { font-size: 1.2rem; }
+            .pregunta-texto { font-size: 1.5rem; }
+            .emoji { font-size: 3.5rem; }
+            .boton-opcion { min-width: 100px; padding: 15px 10px; }
+            .etiqueta { font-size: 0.9rem; }
         }
     </style>
 </head>
 <body>
 
-    <div class="contenedor-principal" id="encuesta">
-        <h1 class="titulo">¡Gracias por preferirnos!</h1>
-        <p class="subtitulo">¿Cómo califica la atención que recibió hoy?</p>
+    <div class="contenedor-principal" id="contenedor-encuesta">
+        <h1 class="titulo">Encuesta de Servicios Universitarios</h1>
+        <p class="subtitulo">Ayúdanos a mejorar tu experiencia en el campus</p>
         
-        <div class="grupo-opciones">
-            <button class="boton-opcion" data-valor="1">
-                <span class="emoji">😠</span>
-                <span class="etiqueta">Muy Mala</span>
-            </button>
-            <button class="boton-opcion" data-valor="2">
-                <span class="emoji">🙁</span>
-                <span class="etiqueta">Mala</span>
-            </button>
-            <button class="boton-opcion" data-valor="3">
-                <span class="emoji">😐</span>
-                <span class="etiqueta">Regular</span>
-            </button>
-            <button class="boton-opcion" data-valor="4">
-                <span class="emoji">🙂</span>
-                <span class="etiqueta">Buena</span>
-            </button>
-            <button class="boton-opcion" data-valor="5">
-                <span class="emoji">😁</span>
-                <span class="etiqueta">Excelente</span>
-            </button>
+        <!-- Contenedor dinámico para la pregunta actual -->
+        <div id="area-pregunta">
+            <h2 class="pregunta-texto" id="texto-pregunta">Cargando pregunta...</h2>
+            
+            <div class="grupo-opciones">
+                <!-- Las opciones son las mismas para todas las preguntas -->
+                <button class="boton-opcion" data-valor="5">
+                    <span class="emoji">😁</span>
+                    <span class="etiqueta">Excelente</span>
+                </button>
+                <button class="boton-opcion" data-valor="4">
+                    <span class="emoji">🙂</span>
+                    <span class="etiqueta">Buena</span>
+                </button>
+                <button class="boton-opcion" data-valor="3">
+                    <span class="emoji">😐</span>
+                    <span class="etiqueta">Regular</span>
+                </button>
+                <button class="boton-opcion" data-valor="2">
+                    <span class="emoji">🙁</span>
+                    <span class="etiqueta">Mala</span>
+                </button>
+                <button class="boton-opcion" data-valor="1">
+                    <span class="emoji">😠</span>
+                    <span class="etiqueta">Muy Mala</span>
+                </button>
+            </div>
+            
+            <div class="indicador-progreso" id="indicador-progreso">
+                Pregunta 1 de 4
+            </div>
         </div>
     </div>
 
     <div class="contenedor-principal oculto" id="agradecimiento">
         <div class="mensaje-exito">
             <h1 class="titulo">¡Muchas gracias!</h1>
-            <p class="subtitulo">Su opinión nos ayuda a brindarle un mejor servicio.</p>
+            <p class="subtitulo">Tus respuestas han sido registradas. Seguimos trabajando para ofrecerte lo mejor.</p>
         </div>
     </div>
 
     <script>
-        const botones = document.querySelectorAll('.boton-opcion');
-        const seccionEncuesta = document.getElementById('encuesta');
-        const seccionAgradecimiento = document.getElementById('agradecimiento');
+        // 1. Definir las preguntas de la universidad
+        const preguntas = [
+            "¿Cómo califica la atención recibida durante su proceso de pago/matrícula?",
+            "¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?",
+            "¿Cómo califica la claridad de la información brindada por el personal?",
+            "En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?"
+        ];
 
-        function registrarCalificacion(evento) {
+        // 2. Variables de estado
+        let preguntaActual = 0;
+        let respuestasActuales = {}; // Guardará las respuestas de un estudiante
+
+        // 3. Referencias a elementos del DOM
+        const textoPregunta = document.getElementById('texto-pregunta');
+        const indicadorProgreso = document.getElementById('indicador-progreso');
+        const botones = document.querySelectorAll('.boton-opcion');
+        const contenedorEncuesta = document.getElementById('contenedor-encuesta');
+        const seccionAgradecimiento = document.getElementById('agradecimiento');
+        const areaPregunta = document.getElementById('area-pregunta');
+
+        // 4. Función para mostrar la pregunta correspondiente
+        function mostrarPregunta() {
+            textoPregunta.textContent = preguntas[preguntaActual];
+            indicadorProgreso.textContent = `Pregunta ${preguntaActual + 1} de ${preguntas.length}`;
+            
+            // Pequeña animación de entrada
+            areaPregunta.style.opacity = 0;
+            setTimeout(() => {
+                areaPregunta.style.transition = "opacity 0.3s ease";
+                areaPregunta.style.opacity = 1;
+            }, 50);
+        }
+
+        // 5. Función que se ejecuta al tocar una opción
+        function registrarRespuesta(evento) {
             const botonTocado = evento.currentTarget;
             const valor = parseInt(botonTocado.getAttribute('data-valor'));
 
+            // Guardar respuesta actual en memoria temporal
+            respuestasActuales[`pregunta_${preguntaActual + 1}`] = valor;
+
+            preguntaActual++;
+
+            if (preguntaActual < preguntas.length) {
+                // Si hay más preguntas, mostrar la siguiente
+                mostrarPregunta();
+            } else {
+                // Si terminamos, guardar en LocalStorage y mostrar agradecimiento
+                finalizarEncuesta();
+            }
+        }
+
+        // 6. Función para guardar datos y finalizar
+        function finalizarEncuesta() {
             // --- CONEXIÓN: GUARDAR EN MEMORIA (LOCALSTORAGE) ---
-            // 1. Buscamos si ya hay votos guardados antes, si no, creamos una lista vacía
-            let historialVotos = JSON.parse(localStorage.getItem('votosSupermercado')) || [];
+            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
             
-            // 2. Agregamos el nuevo voto a la lista
-            historialVotos.push(valor);
+            // Añadir marca de tiempo para saber cuándo se hizo
+            respuestasActuales.fecha = new Date().toISOString();
             
-            // 3. Guardamos la lista actualizada en la memoria del navegador
-            localStorage.setItem('votosSupermercado', JSON.stringify(historialVotos));
+            historialEncuestas.push(respuestasActuales);
+            localStorage.setItem('encuestasUniversidad', JSON.stringify(historialEncuestas));
             // ---------------------------------------------------
 
             // Transición visual
-            seccionEncuesta.classList.add('oculto');
+            contenedorEncuesta.classList.add('oculto');
             seccionAgradecimiento.classList.remove('oculto');
 
-            // Regresa a la pantalla inicial en 4 segundos
+            // Preparar para el siguiente estudiante (reseteo)
             setTimeout(() => {
+                preguntaActual = 0;
+                respuestasActuales = {};
+                mostrarPregunta(); // Vuelve a la primera pregunta
                 seccionAgradecimiento.classList.add('oculto');
-                seccionEncuesta.classList.remove('oculto');
-            }, 4000);
+                contenedorEncuesta.classList.remove('oculto');
+            }, 4000); // Muestra el agradecimiento por 4 segundos
         }
 
-        // Asignamos la función a cada botón
+        // 7. Inicializar la encuesta
         botones.forEach(boton => {
-            boton.addEventListener('click', registrarCalificacion);
+            boton.addEventListener('click', registrarRespuesta);
         });
+
+        // Mostrar la primera pregunta al cargar
+        mostrarPregunta();
     </script>
 
 </body>
