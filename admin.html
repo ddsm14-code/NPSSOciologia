@@ -161,74 +161,49 @@
                         </div>
                     </div>
                 </section>
-            </div>
-        </div>
 
-        <!-- ========================================== -->
-        <!-- VISTA 2: CONFIGURACIÓN GENERAL -->
-        <!-- ========================================== -->
-        <div id="vista-configuracion" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200">
-                <h1 class="text-2xl font-bold text-slate-900">Configuración General</h1>
-                <p class="text-sm text-slate-500 mt-1">Ajustes principales del sistema y la institución.</p>
-            </header>
-            <div class="p-8 max-w-4xl">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- NUEVA SECCIÓN: PLANES DE ACCIÓN (WORKFLOW) -->
+                <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
-                                <option value="Universidad Nacional">Universidad Nacional</option>
-                                <option value="Universidad Martin Lutero" selected>Universidad Martin Lutero</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
-                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
-                                <option value="Central - Managua">Central - Managua</option>
-                                <option value="Masaya">Masaya</option>
-                                <option value="Ocotal">Ocotal</option>
-                                <option value="Leon">León</option>
-                                <option value="Chinandega">Chinandega</option>
-                                <option value="El Rama">El Rama</option>
-                                <option value="Jinotega">Jinotega</option>
-                                <option value="Nueva Guinea">Nueva Guinea</option>
-                                <option value="San Carlos">San Carlos</option>
-                                <option value="Santo Tomas">Santo Tomás</option>
-                                <option value="Siuna">Siuna</option>
-                                <option value="Jalapa">Jalapa</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Logo de la Institución (Opcional)</label>
-                        <input type="file" id="input-logo" accept=".jpg, .jpeg, .png" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all border border-slate-300 rounded-lg bg-slate-50 cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-2">Formatos aceptados: JPG, PNG. Recomendado: 150x150px.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Correo del Administrador</label>
-                            <input type="email" value="admin@uml.edu.ni" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Huso Horario</label>
-                            <select class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer">
-                                <option>GMT-6 (América/Managua)</option>
-                                <option>GMT-5 (América/Bogotá)</option>
-                                <option>GMT-6 (América/México_City)</option>
-                            </select>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <span>🛠️</span> Planes de Acción (Workflow Operativo)
+                            </h3>
+                            <p class="text-sm text-slate-500 mt-1">Cierra el ciclo: Convierte los hallazgos del dashboard en tareas asignadas.</p>
                         </div>
                     </div>
                     
-                    <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
-                            Guardar Cambios
+                    <div class="flex flex-col md:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
+                        <input type="text" id="nueva-tarea-texto" placeholder="Ej: Capacitar al personal de caja en el turno de la tarde..." class="flex-1 bg-white border border-slate-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                        <select id="nueva-tarea-responsable" class="bg-white border border-slate-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                            <option value="Supervisor de Admisión">Supervisor de Admisión</option>
+                            <option value="Soporte TI">Soporte TI</option>
+                            <option value="Recursos Humanos">Recursos Humanos</option>
+                            <option value="Director Académico">Director Académico</option>
+                            <option value="Mantenimiento">Mantenimiento</option>
+                        </select>
+                        <button onclick="agregarTarea()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
+                            <span>+</span> Asignar
                         </button>
                     </div>
-                </div>
+
+                    <div class="overflow-x-auto rounded-xl border border-slate-200">
+                        <table class="w-full text-left text-sm text-slate-600">
+                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-xs">
+                                <tr>
+                                    <th class="p-4">Acción a Tomar</th>
+                                    <th class="p-4">Responsable</th>
+                                    <th class="p-4">Estado Actual</th>
+                                    <th class="p-4">Actualizar</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lista-tareas" class="divide-y divide-slate-200 bg-white">
+                                <!-- Las tareas se inyectan mediante JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
             </div>
         </div>
 
@@ -798,6 +773,96 @@
             mostrarNotificacion('PDF descargado con éxito');
         }
 
+        // LÓGICA DE WORKFLOW (PLANES DE ACCIÓN)
+        function renderizarTareas() {
+            // Inicializar con una tarea de ejemplo si está vacío
+            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad'));
+            if (!tareas) {
+                tareas = [
+                    { id: 1, texto: "Revisar tiempos de espera en ventanilla #3", responsable: "Supervisor de Admisión", estado: "en_proceso" }
+                ];
+                localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
+            }
+            
+            const tbody = document.getElementById('lista-tareas');
+            tbody.innerHTML = '';
+            
+            if(tareas.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-500 italic">No hay planes de acción activos. ¡Todo en orden!</td></tr>';
+                return;
+            }
+
+            tareas.forEach(tarea => {
+                let colorEstado = 'bg-amber-100 text-amber-700 border-amber-200'; // pendiente
+                let textoEstado = 'Pendiente ⏳';
+                if(tarea.estado === 'en_proceso') { colorEstado = 'bg-blue-100 text-blue-700 border-blue-200'; textoEstado = 'En Proceso 🔄'; }
+                else if(tarea.estado === 'resuelto') { colorEstado = 'bg-emerald-100 text-emerald-700 border-emerald-200'; textoEstado = 'Resuelto ✅'; }
+
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                        <td class="p-4 font-medium text-slate-800">${tarea.texto}</td>
+                        <td class="p-4 text-slate-500">${tarea.responsable}</td>
+                        <td class="p-4">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold border ${colorEstado}">${textoEstado}</span>
+                        </td>
+                        <td class="p-4 flex items-center gap-3">
+                            <select onchange="cambiarEstadoTarea(${tarea.id}, this.value)" class="text-sm bg-white border border-slate-300 text-slate-700 rounded-md p-1.5 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
+                                <option value="pendiente" ${tarea.estado === 'pendiente' ? 'selected' : ''}>Marcar Pendiente</option>
+                                <option value="en_proceso" ${tarea.estado === 'en_proceso' ? 'selected' : ''}>Marcar En Proceso</option>
+                                <option value="resuelto" ${tarea.estado === 'resuelto' ? 'selected' : ''}>Marcar Resuelto</option>
+                            </select>
+                            <button onclick="eliminarTarea(${tarea.id})" class="text-slate-400 hover:text-red-500 transition-colors" title="Eliminar Tarea">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function agregarTarea() {
+            const texto = document.getElementById('nueva-tarea-texto').value.trim();
+            const resp = document.getElementById('nueva-tarea-responsable').value;
+            
+            if(!texto) {
+                mostrarNotificacion('Escribe una acción a tomar', 'error');
+                return;
+            }
+            
+            const tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+            // Agregamos la nueva tarea al principio de la lista
+            tareas.unshift({ id: Date.now(), texto: texto, responsable: resp, estado: 'pendiente' });
+            localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
+            
+            document.getElementById('nueva-tarea-texto').value = '';
+            renderizarTareas();
+            mostrarNotificacion('Plan de acción asignado exitosamente');
+        }
+
+        function cambiarEstadoTarea(id, nuevoEstado) {
+            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+            const index = tareas.findIndex(t => t.id === id);
+            if(index !== -1) {
+                tareas[index].estado = nuevoEstado;
+                localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
+                renderizarTareas();
+                
+                if (nuevoEstado === 'resuelto') {
+                    mostrarNotificacion('¡Excelente! Tarea resuelta ✅');
+                } else {
+                    mostrarNotificacion('Estado de tarea actualizado');
+                }
+            }
+        }
+        
+        function eliminarTarea(id) {
+            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+            tareas = tareas.filter(t => t.id !== id);
+            localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
+            renderizarTareas();
+            mostrarNotificacion('Tarea eliminada del historial');
+        }
+
         window.onload = function() {
             const nombreGuardado = localStorage.getItem('nombreInstitucion');
             const sedeGuardada = localStorage.getItem('sedeInstitucion');
@@ -818,6 +883,7 @@
             }
             
             actualizarDashboard();
+            renderizarTareas(); // Renderizar tabla de workflow al cargar la página
         };
     </script>
 </body>
