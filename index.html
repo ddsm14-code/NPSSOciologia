@@ -8,8 +8,8 @@
     <style>
         * {
             box-sizing: border-box;
-            user-select: none; /* Evita que el texto se sombree en azul al tocar */
-            touch-action: manipulation; /* Optimiza los toques en la pantalla */
+            user-select: none;
+            touch-action: manipulation;
         }
 
         body {
@@ -32,88 +32,34 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
 
-        .titulo {
-            color: #2c3e50;
-            font-size: 3rem;
-            margin-bottom: 10px;
-            font-weight: bold;
-        }
-
-        .subtitulo {
-            font-size: 1.8rem;
-            color: #7f8c8d;
-            margin-bottom: 60px;
-        }
-
-        .pregunta-texto {
-            font-size: 2.2rem;
-            color: #34495e;
-            margin-bottom: 40px;
-            font-weight: 600;
-        }
+        .titulo { color: #2c3e50; font-size: 3rem; margin-bottom: 10px; font-weight: bold; }
+        .subtitulo { font-size: 1.8rem; color: #7f8c8d; margin-bottom: 60px; }
+        .pregunta-texto { font-size: 2.2rem; color: #34495e; margin-bottom: 40px; font-weight: 600; }
 
         .grupo-opciones {
-            display: flex;
-            justify-content: space-between;
-            gap: 15px;
-            flex-wrap: wrap; /* Permite que se adapten en pantallas pequeñas */
+            display: flex; justify-content: space-between; gap: 15px; flex-wrap: wrap;
         }
 
         .boton-opcion {
-            background-color: #ffffff;
-            border: 3px solid #ecf0f1;
-            border-radius: 15px;
-            padding: 30px 15px;
-            flex: 1;
-            min-width: 150px;
-            cursor: pointer;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            transition: all 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+            background-color: #ffffff; border: 3px solid #ecf0f1; border-radius: 15px;
+            padding: 30px 15px; flex: 1; min-width: 150px; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center;
+            transition: all 0.2s ease; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
         }
 
-        .boton-opcion:hover {
-            border-color: #3498db;
-            background-color: #f0f8ff;
-            transform: translateY(-5px);
-        }
+        .boton-opcion:hover { border-color: #3498db; background-color: #f0f8ff; transform: translateY(-5px); }
+        .boton-opcion:active { transform: scale(0.95); }
 
-        .boton-opcion:active {
-            transform: scale(0.95);
-        }
-
-        .emoji {
-            font-size: 5rem;
-            margin-bottom: 15px;
-        }
-
-        .etiqueta {
-            font-size: 1.2rem;
-            color: #2c3e50;
-            font-weight: bold;
-        }
-
-        .oculto {
-            display: none !important;
-        }
+        .emoji { font-size: 5rem; margin-bottom: 15px; }
+        .etiqueta { font-size: 1.2rem; color: #2c3e50; font-weight: bold; }
+        
+        .oculto { display: none !important; }
 
         .mensaje-exito {
-            background-color: #e8f8f5;
-            padding: 60px;
-            border-radius: 20px;
-            border: 3px solid #2ecc71;
+            background-color: #e8f8f5; padding: 60px; border-radius: 20px; border: 3px solid #2ecc71;
         }
+        .indicador-progreso { margin-top: 40px; color: #bdc3c7; font-size: 1.2rem; font-weight: bold; }
 
-        .indicador-progreso {
-            margin-top: 40px;
-            color: #bdc3c7;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        /* Adaptabilidad para móviles */
         @media (max-width: 768px) {
             .titulo { font-size: 2rem; }
             .subtitulo { font-size: 1.2rem; }
@@ -130,12 +76,11 @@
         <h1 class="titulo">Encuesta de Servicios Universitarios</h1>
         <p class="subtitulo">Ayúdanos a mejorar tu experiencia en el campus</p>
         
-        <!-- Contenedor dinámico para la pregunta actual -->
         <div id="area-pregunta">
             <h2 class="pregunta-texto" id="texto-pregunta">Cargando pregunta...</h2>
             
             <div class="grupo-opciones">
-                <!-- Las opciones son las mismas para todas las preguntas -->
+                <!-- Se cambió el orden: Excelente primero -->
                 <button class="boton-opcion" data-valor="5">
                     <span class="emoji">😁</span>
                     <span class="etiqueta">Excelente</span>
@@ -176,21 +121,40 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // ==========================================
-        // CONFIGURACIÓN DE LA NUBE
-        // NOTA PARA GITHUB: Cuando subas esto a tu repositorio, deberás crear tu propio proyecto 
-        // de base de datos gratuito (ej. Firebase) y colocar tus credenciales aquí abajo.
-        // ==========================================
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            /* apiKey: "TU_API_KEY", authDomain: "TU_DOMINIO", projectId: "TU_PROYECTO" */
+        // =========================================================================
+        // 🚨 AQUÍ PONDRÁS TUS LLAVES DE FIREBASE CUANDO LO SUBAS A GITHUB 🚨
+        // =========================================================================
+        let miConfiguracionFirebase = {
+            // apiKey: "TU_API_KEY",
+            // authDomain: "TU_DOMINIO.firebaseapp.com",
+            // projectId: "TU_PROYECTO"
         };
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
 
-        // Variables de estado
+        // Lógica a prueba de fallos:
+        if (typeof __firebase_config !== 'undefined') {
+            miConfiguracionFirebase = JSON.parse(__firebase_config); // Usa el entorno inmersivo si existe
+        }
+
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
+        const tieneCredenciales = Object.keys(miConfiguracionFirebase).length > 0;
+        
+        let app, auth, db;
+        let conexionActiva = false;
+
+        // Intentamos conectar, si falla, NO detenemos el programa
+        if (tieneCredenciales) {
+            try {
+                app = initializeApp(miConfiguracionFirebase);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                conexionActiva = true;
+            } catch (e) {
+                console.error("Error conectando a la base de datos:", e);
+            }
+        } else {
+            console.warn("⚠️ MODO SIN CONEXIÓN: Faltan llaves de Firebase. La encuesta se moverá pero no se guardará en la nube.");
+        }
+
         let preguntas = [
             "¿Cómo califica la atención recibida durante su proceso de pago/matrícula?",
             "¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?",
@@ -200,7 +164,6 @@
         let preguntaActual = 0;
         let respuestasActuales = {};
 
-        // Referencias DOM
         const textoPregunta = document.getElementById('texto-pregunta');
         const indicadorProgreso = document.getElementById('indicador-progreso');
         const botones = document.querySelectorAll('.boton-opcion');
@@ -231,22 +194,22 @@
         }
 
         async function finalizarEncuesta() {
-            // Animación visual inmediata
             contenedorEncuesta.classList.add('oculto');
             seccionAgradecimiento.classList.remove('oculto');
             
             respuestasActuales.fecha = new Date().toISOString();
 
-            try {
-                // GUARDAR EN LA NUBE EN TIEMPO REAL
-                if(auth.currentUser) {
+            // Solo guardamos en la nube si la conexión fue exitosa
+            if (conexionActiva && auth && auth.currentUser) {
+                try {
                     await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), respuestasActuales);
+                    console.log("¡Enviado a la nube con éxito!");
+                } catch (e) {
+                    console.error("Error al guardar:", e);
                 }
-            } catch (e) {
-                console.error("Error al guardar en la nube", e);
             }
 
-            // Reseteo para el siguiente alumno
+            // Reinicio de la encuesta
             setTimeout(() => {
                 preguntaActual = 0;
                 respuestasActuales = {};
@@ -257,35 +220,32 @@
         }
 
         async function iniciarSistema() {
-            try {
-                // Autenticar primero (Requisito de seguridad)
-                if (typeof __initial_auth_token !== 'undefined') {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
+            // Mostramos la primera pregunta INMEDIATAMENTE para que no se congele la pantalla
+            mostrarPregunta();
+            botones.forEach(boton => boton.addEventListener('click', registrarRespuesta));
 
-                // Escuchar si el Administrador cambia las preguntas en tiempo real
-                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), (docSnap) => {
-                    if(docSnap.exists() && docSnap.data().lista) {
-                        preguntas = docSnap.data().lista;
-                        if(preguntaActual === 0) mostrarPregunta();
+            if (conexionActiva) {
+                try {
+                    if (typeof __initial_auth_token !== 'undefined') {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
                     }
-                }, (error) => console.log("Usando preguntas por defecto."));
 
-                // Asignar eventos y mostrar primera pregunta
-                botones.forEach(boton => boton.addEventListener('click', registrarRespuesta));
-                mostrarPregunta();
-
-            } catch (error) {
-                console.error("No se pudo conectar a la nube:", error);
-                textoPregunta.textContent = "Error de conexión. Intente recargar.";
+                    // Escuchar si el Admin cambia las preguntas
+                    onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), (docSnap) => {
+                        if(docSnap.exists() && docSnap.data().lista) {
+                            preguntas = docSnap.data().lista;
+                            if(preguntaActual === 0) mostrarPregunta();
+                        }
+                    });
+                } catch (error) {
+                    console.error("No se pudo iniciar sesión en la base de datos:", error);
+                }
             }
         }
 
-        // Arrancar el sistema
         iniciarSistema();
     </script>
-
 </body>
 </html>
