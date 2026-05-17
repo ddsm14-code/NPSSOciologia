@@ -16,31 +16,23 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        /* Estilos para los toggles (interruptores) */
+        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
+        .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
+        .toggle-label { width: 3rem; height: 1.5rem; background-color: #cbd5e1; border-radius: 9999px; transition: all 0.3s; }
     </style>
 </head>
 <body class="flex h-screen bg-slate-50 text-slate-800 overflow-hidden">
 
-    <!-- MODAL DE LA NUBE AUTOMÁTICA -->
-    <div id="modal-cloud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 text-center">
-            <span class="text-5xl mb-4 block">☁️</span>
-            <h3 class="text-2xl font-bold text-slate-800 mb-2">¡Base de Datos Pública Creada!</h3>
-            <p class="text-slate-600 mb-6">El código ha fabricado automáticamente un espacio en internet para guardar tus encuestas. Tu ID único es:</p>
-            <div class="bg-slate-100 p-4 rounded-xl text-3xl font-mono font-bold text-blue-600 tracking-wider mb-6 cursor-pointer select-all">
-                <span id="txt-cloud-id">Generando...</span>
-            </div>
-            <p class="text-sm text-red-500 font-bold mb-6">⚠️ PASO FINAL: Copia el código de arriba, abre tu archivo <b>index.html</b> y pégalo donde dice "PEGA_AQUI_EL_ID".</p>
-            <button onclick="document.getElementById('modal-cloud').classList.add('hidden')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Entendido, ya lo copié</button>
-        </div>
-    </div>
-
-    <!-- MENÚ LATERAL -->
     <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-xl z-20 shrink-0">
         <div class="p-6 border-b border-slate-800">
             <div class="flex items-center gap-3">
-                <div id="contenedor-logo" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 bg-white">
+                <div id="contenedor-logo" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                     <span id="icono-por-defecto" class="text-xl">🎓</span>
-                    <img id="logo-imagen" src="" alt="Logo" class="w-full h-full object-contain hidden">
+                    <img id="logo-imagen" src="" alt="Logo" class="w-full h-full object-cover hidden">
                 </div>
                 <div class="overflow-hidden">
                     <h2 id="logo-texto" class="text-xl font-bold text-blue-400 truncate w-full">UnivAdmin</h2>
@@ -49,7 +41,7 @@
             </div>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="menu-navegacion">
-            <button onclick="cambiarVista('vista-dashboard', this)" class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md transition-all nav-item">
+            <button onclick="cambiarVista('vista-dashboard', this)" class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item">
                 <span>📊</span> Dashboard Analítico
             </button>
             <button onclick="cambiarVista('vista-configuracion', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
@@ -58,6 +50,9 @@
             <button onclick="cambiarVista('vista-personalizar', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
                 <span>🎨</span> Personalizar Encuesta
             </button>
+            <button onclick="cambiarVista('vista-alertas', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
+                <span>🔔</span> Alertas y Notificaciones
+            </button>
             <div class="pt-4 mt-2 border-t border-slate-800"></div>
             <button onclick="abrirModalExportar()" class="w-full text-left flex items-center gap-3 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-3 rounded-xl border border-slate-600 transition-all cursor-pointer">
                 <span>📥</span> Exportar PDF
@@ -65,388 +60,765 @@
         </nav>
         <div class="p-4 border-t border-slate-800">
             <button onclick="inyectarDatosPrueba()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors border border-slate-700">
-                🧪 Generar 15 Datos Falsos
+                🧪 Generar Datos
             </button>
             <button onclick="abrirModalLimpiar()" class="w-full mt-2 text-red-400 hover:text-red-300 text-xs text-center transition-colors">
-                Limpiar Nube
+                Limpiar Memoria
             </button>
         </div>
     </aside>
 
-    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-slate-50">
         
-        <!-- VISTA: DASHBOARD -->
+        <!-- ========================================== -->
+        <!-- VISTA 1: DASHBOARD ANALÍTICO (ACTIVO POR DEFECTO) -->
+        <!-- ========================================== -->
         <div id="vista-dashboard" class="seccion-vista block">
             <header class="bg-white px-8 py-6 flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-200 sticky top-0 z-10">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900">Métricas de Satisfacción</h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>
-                        <p class="text-sm text-slate-500 font-medium tracking-wide">Sincronizando con internet...</p>
+                        <span class="relative flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+                        </span>
+                        <p class="text-sm text-slate-500 font-medium">Sincronizado en Tiempo Real</p>
                     </div>
                 </div>
+
                 <div class="mt-4 lg:mt-0 flex items-center gap-3 bg-slate-100 p-2 rounded-xl border border-slate-200">
-                    <label class="text-sm font-semibold text-slate-600 pl-2">Vista:</label>
-                    <select id="filtroVista" onchange="actualizarGraficas()" class="bg-white border-none text-sm font-bold text-slate-800 py-2 px-4 rounded-lg shadow-sm focus:ring-2 outline-none">
-                        <option value="todas">🌐 Vista General</option>
+                    <label for="filtroVista" class="text-sm font-semibold text-slate-600 pl-2">Vista de Análisis:</label>
+                    <select id="filtroVista" onchange="actualizarDashboard()" class="bg-white border-none text-sm font-bold text-slate-800 py-2 px-4 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                        <option value="todas">🌐 Vista General (Todas las áreas)</option>
                         <option value="pregunta_1">💳 1. Pagos y Matrícula</option>
                         <option value="pregunta_2">⏱️ 2. Tiempos de Espera</option>
-                        <option value="pregunta_3">ℹ️ 3. Información</option>
+                        <option value="pregunta_3">ℹ️ 3. Claridad de Información</option>
                         <option value="pregunta_4">🌟 4. Atención General</option>
                     </select>
                 </div>
             </header>
 
             <div class="p-8">
-                <!-- KPIs -->
                 <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Encuestas</span>
                         <span class="text-4xl font-black text-slate-800" id="kpi-total">0</span>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Promedio</span>
-                        <div class="flex items-end gap-2"><span class="text-4xl font-black text-blue-600" id="kpi-promedio">0.0</span><span class="text-lg font-bold text-slate-400 mb-1">/ 5</span></div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-0"></div>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2 relative z-10">Promedio Seleccionado</span>
+                        <div class="flex items-end gap-2 relative z-10">
+                            <span class="text-4xl font-black text-blue-600" id="kpi-promedio">0.0</span>
+                            <span class="text-lg font-bold text-slate-400 mb-1">/ 5</span>
+                        </div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Sentimiento</span>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Sentimiento Dominante</span>
                         <span class="text-2xl font-bold text-slate-700 mt-2" id="kpi-sentimiento">-</span>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500 flex flex-col">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área Crítica</span>
-                        <span class="text-xl font-bold text-slate-800 mt-2" id="kpi-critica">-</span>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500 flex flex-col" id="kpi-card-critica">
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área de Mayor Riesgo</span>
+                        <span class="text-xl font-bold text-slate-800 mt-2 leading-tight" id="kpi-critica">-</span>
                     </div>
                 </section>
 
-                <!-- GRÁFICAS -->
                 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6">Turnos (8am - 5pm)</h3>
-                        <div class="h-64 relative"><canvas id="graficaTurnos"></canvas></div>
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-lg font-bold text-slate-800">Rendimiento por Turnos Horarios</h3>
+                            <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full" id="etiqueta-turno">Filtro Activo</span>
+                        </div>
+                        <div class="h-64 relative">
+                            <canvas id="graficaTurnos"></canvas>
+                        </div>
                     </div>
+
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6">Comparativa de Áreas</h3>
-                        <div class="h-64 relative"><canvas id="graficaAreas"></canvas></div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-6">Comparativa de Áreas (General)</h3>
+                        <div class="h-64 relative">
+                            <canvas id="graficaAreas"></canvas>
+                        </div>
                     </div>
                 </section>
 
-                <!-- WORKFLOW Y SUGERENCIAS -->
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800 mb-2">Sentimientos</h3>
-                        <div class="h-56 relative flex justify-center"><canvas id="graficaDistribucion"></canvas></div>
-                    </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4">Planes de Acción (Workflow)</h3>
-                        <div class="flex gap-2 mb-4">
-                            <input type="text" id="input-tarea" placeholder="Ej: Hablar con cajero..." class="flex-1 border border-slate-300 rounded-lg p-2 outline-none">
-                            <button onclick="agregarTarea()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">Asignar</button>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">Distribución de Sentimientos</h3>
+                        <p class="text-xs text-slate-500 mb-4">Porcentaje de calificaciones en el área seleccionada</p>
+                        <div class="h-56 relative flex justify-center">
+                            <canvas id="graficaDistribucion"></canvas>
                         </div>
-                        <div class="overflow-y-auto max-h-48 border border-slate-200 rounded-lg">
-                            <table class="w-full text-left text-sm"><tbody id="lista-tareas" class="divide-y divide-slate-100 bg-slate-50"></tbody></table>
+                    </div>
+
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
+                            <span>🤖</span> Análisis Inteligente y Recomendaciones
+                        </h3>
+                        <div class="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-100 overflow-y-auto">
+                            <ul id="lista-sugerencias" class="space-y-4">
+                                <!-- JS inyecta sugerencias aquí -->
+                            </ul>
                         </div>
                     </div>
                 </section>
             </div>
         </div>
 
-        <!-- VISTA: CONFIGURACIÓN GENERAL -->
+        <!-- ========================================== -->
+        <!-- VISTA 2: CONFIGURACIÓN GENERAL -->
+        <!-- ========================================== -->
         <div id="vista-configuracion" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Configuración General</h1></header>
+            <header class="bg-white px-8 py-6 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-slate-900">Configuración General</h1>
+                <p class="text-sm text-slate-500 mt-1">Ajustes principales del sistema y la institución.</p>
+            </header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
+                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
-                                <option value="Universidad Martin Lutero">Universidad Martin Lutero</option>
-                                <option value="UnivAdmin Global">UnivAdmin Global</option>
+                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
+                                <option value="Universidad Nacional">Universidad Nacional</option>
+                                <option value="Universidad Martin Lutero" selected>Universidad Martin Lutero</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
-                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
+                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
                                 <option value="Central - Managua">Central - Managua</option>
                                 <option value="Masaya">Masaya</option>
                                 <option value="Ocotal">Ocotal</option>
-                                <option value="León">León</option>
+                                <option value="Leon">León</option>
                                 <option value="Chinandega">Chinandega</option>
                                 <option value="El Rama">El Rama</option>
                                 <option value="Jinotega">Jinotega</option>
                                 <option value="Nueva Guinea">Nueva Guinea</option>
                                 <option value="San Carlos">San Carlos</option>
-                                <option value="Santo Tomás">Santo Tomás</option>
+                                <option value="Santo Tomas">Santo Tomás</option>
                                 <option value="Siuna">Siuna</option>
                                 <option value="Jalapa">Jalapa</option>
                             </select>
                         </div>
                     </div>
+
                     <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Logotipo de la Institución</label>
-                        <input type="file" id="input-logo" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Logo de la Institución (Opcional)</label>
+                        <input type="file" id="input-logo" accept=".jpg, .jpeg, .png" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all border border-slate-300 rounded-lg bg-slate-50 cursor-pointer">
+                        <p class="text-xs text-slate-500 mt-2">Formatos aceptados: JPG, PNG. Recomendado: 150x150px.</p>
                     </div>
-                    <div class="pt-6 flex justify-end">
-                        <button onclick="guardarConfiguracion()" class="bg-blue-600 text-white font-medium py-2.5 px-6 rounded-lg">Guardar Cambios</button>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Correo del Administrador</label>
+                            <input type="email" value="admin@uml.edu.ni" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Huso Horario</label>
+                            <select class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer">
+                                <option>GMT-6 (América/Managua)</option>
+                                <option>GMT-5 (América/Bogotá)</option>
+                                <option>GMT-6 (América/México_City)</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
+                            Guardar Cambios
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- VISTA: PERSONALIZAR ENCUESTA -->
+        <!-- ========================================== -->
+        <!-- VISTA 3: PERSONALIZAR ENCUESTA -->
+        <!-- ========================================== -->
         <div id="vista-personalizar" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Personalizar Preguntas</h1></header>
+            <header class="bg-white px-8 py-6 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-slate-900">Personalizar Encuesta</h1>
+                <p class="text-sm text-slate-500 mt-1">Modifica las preguntas que verán los estudiantes en las pantallas interactivas.</p>
+            </header>
             <div class="p-8 max-w-4xl">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-4">
-                    <input type="text" id="preg-1" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?">
-                    <input type="text" id="preg-2" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?">
-                    <input type="text" id="preg-3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo califica la claridad de la información brindada por el personal?">
-                    <input type="text" id="preg-4" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="En general, ¿Cómo califica la calidad del servicio administrativo hoy?">
-                    <button onclick="guardarPreguntas()" class="bg-blue-600 text-white px-6 py-2 rounded-lg mt-4 w-full font-bold">Sincronizar a todos los celulares</button>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
+                    <div class="p-4 bg-blue-50 text-blue-800 rounded-xl text-sm mb-6 flex gap-3 border border-blue-100">
+                        <span>💡</span>
+                        <p>Los cambios realizados aquí se sincronizarán inmediatamente con todos los tótems y enlaces web de la encuesta.</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 1 (Área Financiera)</label>
+                            <input type="text" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 2 (Área de Operaciones)</label>
+                            <input type="text" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 3 (Área de Comunicación)</label>
+                            <input type="text" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 4 (Satisfacción Global)</label>
+                            <input type="text" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                        </div>
+                    </div>
+                    
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button onclick="guardarFalso('Preguntas actualizadas exitosamente')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
+                            <span>🔄</span> Sincronizar Cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- VISTA 4: ALERTAS Y NOTIFICACIONES -->
+        <!-- ========================================== -->
+        <div id="vista-alertas" class="seccion-vista hidden">
+            <header class="bg-white px-8 py-6 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-slate-900">Alertas y Notificaciones</h1>
+                <p class="text-sm text-slate-500 mt-1">Configura cuándo y cómo deseas ser notificado sobre el rendimiento.</p>
+            </header>
+            <div class="p-8 max-w-4xl">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
+                    
+                    <!-- Toggle 1 -->
+                    <div class="flex items-center justify-between py-3 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Alertas Críticas Inmediatas</h3>
+                            <p class="text-sm text-slate-500">Enviar email si se reciben 3 calificaciones "Muy Malas" consecutivas.</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle1" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggle1" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <!-- Toggle 2 -->
+                    <div class="flex items-center justify-between py-3 border-b border-slate-100">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Resumen Diario Automático</h3>
+                            <p class="text-sm text-slate-500">Recibir un PDF al cierre de la jornada (18:00h) con los resultados del día.</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle2" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggle2" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <!-- Toggle 3 -->
+                    <div class="flex items-center justify-between py-3">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-800">Notificación de Tendencias</h3>
+                            <p class="text-sm text-slate-500">Avisar si el promedio general cae por debajo de 3.5 durante la semana.</p>
+                        </div>
+                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+                            <input type="checkbox" name="toggle" id="toggle3" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                            <label for="toggle3" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button onclick="guardarFalso('Preferencias de notificaciones guardadas')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
+                            Guardar Preferencias
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
     </main>
 
-    <!-- NOTIFICACIÓN -->
-    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50">
-        <span id="toast-message" class="text-sm font-medium">✅ Operación exitosa</span>
+    <!-- Modal Exportar PDF -->
+    <div id="modal-exportar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300" id="modal-exportar-content">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-slate-800">Generar Reporte PDF</h3>
+                <button onclick="cerrarModalExportar()" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Rango de Datos</label>
+                    <select id="exportar-rango" class="w-full border-slate-300 rounded-lg shadow-sm p-2.5 bg-slate-50 border focus:ring-blue-500 focus:border-blue-500 outline-none" onchange="toggleFechasPDF()">
+                        <option value="total">Historial Completo</option>
+                        <option value="fechas">Por Rango de Fechas</option>
+                    </select>
+                </div>
+
+                <div id="contenedor-fechas" class="hidden grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Desde</label>
+                        <input type="date" id="fecha-inicio" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Hasta</label>
+                        <input type="date" id="fecha-fin" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end gap-3">
+                <button onclick="cerrarModalExportar()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
+                <button onclick="generarReportePDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
+                    <span>📥</span> Descargar
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- SCRIPT PRINCIPAL QUE CREA LA BASE DE DATOS -->
-    <script>
-        // ========================================================
-        // EL CORAZÓN DEL SISTEMA: FABRICADOR DE BASE DE DATOS API
-        // ========================================================
-        const API_URL = "https://jsonblob.com/api/jsonBlob";
-        let CLOUD_ID = localStorage.getItem("univ_db_id_public");
-        
-        let dbEnNube = { encuestas: [], tareas: [], preguntas: [] };
-        let charts = {}; // Para guardar las graficas
+    <!-- Modal Confirmar Limpieza -->
+    <div id="modal-limpiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 text-center" id="modal-limpiar-content">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <span class="text-2xl">⚠️</span>
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 mb-2">¿Borrar todos los datos?</h3>
+            <p class="text-sm text-slate-500 mb-6">Esta acción no se puede deshacer. Todo el historial de encuestas será eliminado permanentemente.</p>
+            <div class="flex justify-center gap-3">
+                <button onclick="cerrarModalLimpiar()" class="px-4 py-2 w-full text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
+                <button onclick="ejecutarLimpiezaDatos()" class="px-4 py-2 w-full bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors">Sí, borrar</button>
+            </div>
+        </div>
+    </div>
 
-        // 1. ARRANCAR EL SISTEMA
-        async function arrancarSistema() {
-            if (!CLOUD_ID) {
-                try {
-                    // Creamos una base de datos vacía en internet (POST)
-                    let res = await fetch(API_URL, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json", "Accept": "application/json" },
-                        body: JSON.stringify({ encuestas: [], tareas: [], preguntas: [] })
-                    });
-                    // Obtenemos el ID generado
-                    let urlDestino = res.headers.get("Location");
-                    CLOUD_ID = urlDestino.split('/').pop();
-                    localStorage.setItem("univ_db_id_public", CLOUD_ID); // Lo guardamos en la PC para no perderlo
-                    
-                    // Mostramos el código gigante al administrador
-                    document.getElementById("txt-cloud-id").textContent = CLOUD_ID;
-                    document.getElementById("modal-cloud").classList.remove("hidden");
-                } catch(e) {
-                    alert("Error creando la base de datos de internet.");
-                }
-            } else {
-                mostrarNotificacion("✅ Conectado a BD: " + CLOUD_ID);
+    <!-- Toast Notification -->
+    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 pointer-events-none">
+        <span id="toast-icon">✅</span>
+        <span id="toast-message" class="text-sm font-medium">Operación exitosa</span>
+    </div>
+
+    <script>
+        // Lógica de Navegación SPA (Single Page Application)
+        function cambiarVista(idVista, botonClickeado) {
+            // 1. Ocultar todas las vistas
+            document.querySelectorAll('.seccion-vista').forEach(vista => {
+                vista.classList.remove('block');
+                vista.classList.add('hidden');
+            });
+
+            // 2. Mostrar la vista seleccionada
+            document.getElementById(idVista).classList.remove('hidden');
+            document.getElementById(idVista).classList.add('block');
+
+            // 3. Reiniciar estilos de todos los botones del menú
+            document.querySelectorAll('.nav-item').forEach(btn => {
+                btn.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item";
+            });
+
+            // 4. Aplicar estilo activo al botón clickeado
+            botonClickeado.className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item";
+
+            // Si vuelve al dashboard, refrescar datos para que los gráficos se pinten bien
+            if(idVista === 'vista-dashboard') {
+                actualizarDashboard();
+            }
+        }
+
+        // Sistema de Notificaciones (Reemplazo de alert)
+        let toastTimeout;
+        function mostrarNotificacion(mensaje, tipo = 'exito') {
+            const toast = document.getElementById('toast-notificacion');
+            const txt = document.getElementById('toast-message');
+            const icon = document.getElementById('toast-icon');
+
+            txt.textContent = mensaje;
+            
+            if (tipo === 'exito') {
+                icon.textContent = '✅';
+                toast.classList.replace('bg-red-600', 'bg-slate-800');
+            } else if (tipo === 'error') {
+                icon.textContent = '❌';
+                toast.classList.replace('bg-slate-800', 'bg-red-600');
             }
 
-            cargarConfigVisual(); // Cargar logo y texto local
+            // Animación de entrada
+            toast.classList.remove('translate-y-20', 'opacity-0');
             
-            // Descargar datos la primera vez
-            await descargarDatos();
-            
-            // BUCLE MÁGICO: Descargar datos de internet cada 5 segundos para que sea "En Vivo"
-            setInterval(descargarDatos, 5000); 
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                // Animación de salida
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 3000);
         }
 
-        // 2. LECTURA Y ESCRITURA EN INTERNET
-        async function descargarDatos() {
-            if(!CLOUD_ID) return;
-            try {
-                let res = await fetch(`${API_URL}/${CLOUD_ID}`);
-                dbEnNube = await res.json();
+        // Función mock para guardar datos en configuraciones
+        function guardarFalso(mensaje) {
+            mostrarNotificacion(mensaje);
+        }
+
+        function actualizarLogoUI(logoDataUrl) {
+            const imgLogo = document.getElementById('logo-imagen');
+            const iconoDefecto = document.getElementById('icono-por-defecto');
+            
+            if (logoDataUrl) {
+                imgLogo.src = logoDataUrl;
+                imgLogo.classList.remove('hidden');
+                iconoDefecto.classList.add('hidden');
+            } else {
+                imgLogo.classList.add('hidden');
+                iconoDefecto.classList.remove('hidden');
+            }
+        }
+
+        function guardarConfiguracion() {
+            const nuevoNombre = document.getElementById('input-nombre-institucion').value;
+            const nuevaSede = document.getElementById('input-sede').value;
+            const inputLogo = document.getElementById('input-logo');
+            
+            // Actualizar texto UI
+            document.getElementById('logo-texto').textContent = nuevoNombre || 'UnivAdmin';
+            document.getElementById('logo-sede').textContent = nuevaSede || 'Centro de Inteligencia';
+            
+            // Guardar textos en memoria
+            localStorage.setItem('nombreInstitucion', nuevoNombre);
+            localStorage.setItem('sedeInstitucion', nuevaSede);
+
+            // Procesar la imagen si el usuario subió una
+            if (inputLogo.files && inputLogo.files[0]) {
+                const archivo = inputLogo.files[0];
+                const lector = new FileReader();
                 
-                // Actualizar UI
-                actualizarGraficas();
-                renderizarTareas();
+                lector.onload = function(e) {
+                    const base64Imagen = e.target.result;
+                    // Guardar en LocalStorage
+                    localStorage.setItem('logoInstitucion', base64Imagen);
+                    // Actualizar UI
+                    actualizarLogoUI(base64Imagen);
+                    mostrarNotificacion('Configuración y logo guardados correctamente');
+                };
                 
-                // Actualizar inputs de preguntas
-                if(dbEnNube.preguntas && dbEnNube.preguntas.length > 0) {
-                    document.getElementById("preg-1").value = dbEnNube.preguntas[0];
-                    document.getElementById("preg-2").value = dbEnNube.preguntas[1];
-                    document.getElementById("preg-3").value = dbEnNube.preguntas[2];
-                    document.getElementById("preg-4").value = dbEnNube.preguntas[3];
+                lector.readAsDataURL(archivo);
+            } else {
+                mostrarNotificacion('Configuración guardada correctamente');
+            }
+        }
+
+        // Sistema de Modales Personalizados (Reemplazo de confirm y prompt nativos)
+        function abrirModalLimpiar() {
+            const modal = document.getElementById('modal-limpiar');
+            const content = document.getElementById('modal-limpiar-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cerrarModalLimpiar() {
+            const modal = document.getElementById('modal-limpiar');
+            const content = document.getElementById('modal-limpiar-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function ejecutarLimpiezaDatos() {
+            localStorage.removeItem('encuestasUniversidad');
+            cerrarModalLimpiar();
+            actualizarDashboard();
+            mostrarNotificacion('Memoria borrada completamente');
+        }
+
+        function abrirModalExportar() {
+            const modal = document.getElementById('modal-exportar');
+            const content = document.getElementById('modal-exportar-content');
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                content.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function cerrarModalExportar() {
+            const modal = document.getElementById('modal-exportar');
+            const content = document.getElementById('modal-exportar-content');
+            modal.classList.add('opacity-0');
+            content.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        let chartTurnos = null;
+        let chartAreas = null;
+        let chartDist = null;
+
+        const colores = { excelente: '#10b981', bueno: '#3b82f6', regular: '#f59e0b', malo: '#f97316', muy_malo: '#ef4444' };
+
+        function actualizarDashboard() {
+            const historial = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+            const filtroActual = document.getElementById('filtroVista').value;
+            procesarYRenderizar(historial, filtroActual);
+        }
+
+        function procesarYRenderizar(datos, vista) {
+            const totalEncuestas = datos.length;
+            document.getElementById('kpi-total').textContent = totalEncuestas;
+
+            if (totalEncuestas === 0) {
+                renderizarVacio();
+                return;
+            }
+
+            let sumas = { p1: 0, p2: 0, p3: 0, p4: 0, totalGlobal: 0 };
+            let turnos = { mañana: { suma: 0, count: 0 }, tarde: { suma: 0, count: 0 } };
+            let distribucion = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+
+            datos.forEach(enc => {
+                sumas.p1 += enc.pregunta_1 || 0;
+                sumas.p2 += enc.pregunta_2 || 0;
+                sumas.p3 += enc.pregunta_3 || 0;
+                sumas.p4 += enc.pregunta_4 || 0;
+
+                let valorEvaluado = 0;
+                if (vista === 'todas') {
+                    valorEvaluado = ((enc.pregunta_1||0) + (enc.pregunta_2||0) + (enc.pregunta_3||0) + (enc.pregunta_4||0)) / 4;
+                } else {
+                    valorEvaluado = enc[vista] || 0;
                 }
-            } catch(e) { console.log("Esperando conexión..."); }
-        }
+                sumas.totalGlobal += valorEvaluado;
+                distribucion[Math.round(valorEvaluado)] = (distribucion[Math.round(valorEvaluado)] || 0) + 1;
 
-        async function subirDatos() {
-            if(!CLOUD_ID) return;
-            await fetch(`${API_URL}/${CLOUD_ID}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(dbEnNube)
+                if(enc.fecha) {
+                    const hora = new Date(enc.fecha).getHours();
+                    if (hora >= 8 && hora < 13) { turnos.mañana.suma += valorEvaluado; turnos.mañana.count++; }
+                    else if (hora >= 13 && hora < 17) { turnos.tarde.suma += valorEvaluado; turnos.tarde.count++; }
+                }
             });
-        }
 
-        // 3. NAVEGACIÓN Y CONFIGURACIÓN VISUAL
-        window.cambiarVista = (idVista, btn) => {
-            document.querySelectorAll('.seccion-vista').forEach(v => v.classList.add('hidden'));
-            document.getElementById(idVista).classList.remove('hidden');
-            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('bg-blue-600', 'shadow-md'));
-            btn.classList.add('bg-blue-600', 'shadow-md');
-        };
-
-        window.mostrarNotificacion = (msg) => {
-            const t = document.getElementById('toast-notificacion');
-            document.getElementById('toast-message').textContent = msg;
-            t.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3500);
-        };
-
-        window.guardarConfiguracion = () => {
-            const n = document.getElementById("input-nombre-institucion").value;
-            const s = document.getElementById("input-sede").value;
-            const file = document.getElementById("input-logo").files[0];
-
-            document.getElementById("logo-texto").textContent = n;
-            document.getElementById("logo-sede").textContent = s;
-
-            let guardar = () => {
-                localStorage.setItem("univ_visual", JSON.stringify({ nombre: n, sede: s }));
-                mostrarNotificacion("✅ Identidad Actualizada");
+            const promediosAreas = {
+                p1: (sumas.p1 / totalEncuestas).toFixed(2), p2: (sumas.p2 / totalEncuestas).toFixed(2),
+                p3: (sumas.p3 / totalEncuestas).toFixed(2), p4: (sumas.p4 / totalEncuestas).toFixed(2)
+            };
+            const promedioSeleccionado = (sumas.totalGlobal / totalEncuestas).toFixed(2);
+            const promTurnos = {
+                mañana: turnos.mañana.count > 0 ? (turnos.mañana.suma / turnos.mañana.count).toFixed(2) : 0,
+                tarde: turnos.tarde.count > 0 ? (turnos.tarde.suma / turnos.tarde.count).toFixed(2) : 0
             };
 
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const b64 = e.target.result;
-                    document.getElementById("logo-imagen").src = b64;
-                    document.getElementById("logo-imagen").classList.remove("hidden");
-                    document.getElementById("icono-por-defecto").classList.add("hidden");
-                    localStorage.setItem("univ_logo", b64);
-                    guardar();
-                };
-                reader.readAsDataURL(file);
-            } else { guardar(); }
-        };
+            document.getElementById('kpi-promedio').textContent = promedioSeleccionado;
+            
+            let sentimiento = "Neutral 😐"; let colorSentimiento = "text-amber-500";
+            if (promedioSeleccionado >= 4.2) { sentimiento = "Excelente 😁"; colorSentimiento = "text-emerald-500"; }
+            else if (promedioSeleccionado >= 3.5) { sentimiento = "Bueno 🙂"; colorSentimiento = "text-blue-500"; }
+            else if (promedioSeleccionado < 3.0) { sentimiento = "Crítico 😠"; colorSentimiento = "text-red-500"; }
+            
+            const kpiSentimiento = document.getElementById('kpi-sentimiento');
+            kpiSentimiento.textContent = sentimiento;
+            kpiSentimiento.className = `text-2xl font-bold mt-2 ${colorSentimiento}`;
 
-        function cargarConfigVisual() {
-            const vis = JSON.parse(localStorage.getItem("univ_visual"));
-            const log = localStorage.getItem("univ_logo");
-            if(vis) {
-                document.getElementById("logo-texto").textContent = vis.nombre;
-                document.getElementById("logo-sede").textContent = vis.sede;
-            }
-            if(log) {
-                document.getElementById("logo-imagen").src = log;
-                document.getElementById("logo-imagen").classList.remove("hidden");
-                document.getElementById("icono-por-defecto").classList.add("hidden");
-            }
-        }
-
-        // 4. WORKFLOW Y PREGUNTAS (Escriben a la nube)
-        window.guardarPreguntas = async () => {
-            dbEnNube.preguntas = [
-                document.getElementById("preg-1").value, document.getElementById("preg-2").value,
-                document.getElementById("preg-3").value, document.getElementById("preg-4").value
+            let menores = [
+                { nombre: "Pagos y Matrícula", valor: parseFloat(promediosAreas.p1) },
+                { nombre: "Tiempos de Espera", valor: parseFloat(promediosAreas.p2) },
+                { nombre: "Claridad Info.", valor: parseFloat(promediosAreas.p3) },
+                { nombre: "Atención Gral.", valor: parseFloat(promediosAreas.p4) }
             ];
-            await subirDatos();
-            mostrarNotificacion("☁️ Preguntas enviadas a los celulares");
-        };
+            menores.sort((a, b) => a.valor - b.valor);
+            
+            const kpiCritica = document.getElementById('kpi-critica');
+            const kpiCardCritica = document.getElementById('kpi-card-critica');
+            
+            if (menores[0].valor <= 3.5) {
+                kpiCritica.textContent = `${menores[0].nombre} (${menores[0].valor})`;
+                kpiCritica.classList.replace('text-emerald-600', 'text-red-600');
+                kpiCardCritica.classList.replace('border-b-emerald-500', 'border-b-red-500');
+            } else {
+                kpiCritica.textContent = "Todo en orden ✨";
+                kpiCritica.classList.replace('text-red-600', 'text-emerald-600');
+                kpiCardCritica.classList.replace('border-b-red-500', 'border-b-emerald-500');
+            }
 
-        window.agregarTarea = async () => {
-            const txt = document.getElementById("input-tarea").value;
-            if(!txt) return;
-            if(!dbEnNube.tareas) dbEnNube.tareas = [];
-            dbEnNube.tareas.push({ id: Date.now(), texto: txt, estado: 'pendiente' });
-            document.getElementById("input-tarea").value = "";
-            renderizarTareas();
-            await subirDatos();
-            mostrarNotificacion("✅ Tarea asignada en la nube");
-        };
+            document.getElementById('etiqueta-turno').textContent = vista === 'todas' ? 'Promedio Global' : 'Área Específica';
 
-        window.cambiarEstadoTarea = async (id) => {
-            const t = dbEnNube.tareas.find(x => x.id == id);
-            if(t) { t.estado = t.estado === 'pendiente' ? 'resuelto' : 'pendiente'; renderizarTareas(); await subirDatos(); }
-        };
+            renderizarGraficas(promTurnos, promediosAreas, distribucion, vista);
+            generarSugerenciasDinamicas(vista, promedioSeleccionado, promTurnos, promediosAreas);
+        }
 
-        window.eliminarTarea = async (id) => {
-            dbEnNube.tareas = dbEnNube.tareas.filter(x => x.id != id);
-            renderizarTareas(); await subirDatos();
-        };
+        function renderizarGraficas(turnos, areas, dist, vista) {
+            Chart.defaults.font.family = 'Inter';
+            Chart.defaults.color = '#64748b';
 
-        function renderizarTareas() {
-            const tb = document.getElementById("lista-tareas"); tb.innerHTML = "";
-            (dbEnNube.tareas||[]).forEach(t => {
-                let color = t.estado === 'resuelto' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
-                tb.innerHTML += `<tr><td class="p-3">${t.texto}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs cursor-pointer ${color}" onclick="cambiarEstadoTarea(${t.id})">${t.estado}</span></td><td class="p-3"><button onclick="eliminarTarea(${t.id})" class="text-red-500">❌</button></td></tr>`;
+            if (chartTurnos) chartTurnos.destroy();
+            const ctxTurnos = document.getElementById('graficaTurnos').getContext('2d');
+            let turnoColor = '#6366f1';
+            if (parseFloat(turnos.tarde) < 3.0) turnoColor = '#ef4444';
+
+            chartTurnos = new Chart(ctxTurnos, {
+                type: 'line',
+                data: {
+                    labels: ['Mañana (8am-1pm)', 'Tarde (1pm-5pm)'],
+                    datasets: [{
+                        label: 'Satisfacción por Turno', data: [turnos.mañana, turnos.tarde],
+                        borderColor: turnoColor, backgroundColor: turnoColor + '33', borderWidth: 3,
+                        pointBackgroundColor: '#fff', pointBorderColor: turnoColor, pointBorderWidth: 2, pointRadius: 6, fill: true, tension: 0.4
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } }, plugins: { legend: { display: false } } }
+            });
+
+            if (chartAreas) chartAreas.destroy();
+            const ctxAreas = document.getElementById('graficaAreas').getContext('2d');
+            const coloresBarras = [
+                vista === 'pregunta_1' || vista === 'todas' ? '#3b82f6' : '#e2e8f0',
+                vista === 'pregunta_2' || vista === 'todas' ? '#f59e0b' : '#e2e8f0',
+                vista === 'pregunta_3' || vista === 'todas' ? '#10b981' : '#e2e8f0',
+                vista === 'pregunta_4' || vista === 'todas' ? '#8b5cf6' : '#e2e8f0'
+            ];
+
+            chartAreas = new Chart(ctxAreas, {
+                type: 'bar',
+                data: {
+                    labels: ['Pagos/Matrícula', 'Tiempos Espera', 'Claridad Info.', 'Atención Gral.'],
+                    datasets: [{ data: [areas.p1, areas.p2, areas.p3, areas.p4], backgroundColor: coloresBarras, borderRadius: 6 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } }, plugins: { legend: { display: false } } }
+            });
+
+            if (chartDist) chartDist.destroy();
+            const ctxDist = document.getElementById('graficaDistribucion').getContext('2d');
+            chartDist = new Chart(ctxDist, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Excelente (5)', 'Buena (4)', 'Regular (3)', 'Mala (2)', 'Muy Mala (1)'],
+                    datasets: [{ data: [dist[5], dist[4], dist[3], dist[2], dist[1]], backgroundColor: [colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo], borderWidth: 0, hoverOffset: 4 }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } } }
             });
         }
 
-        // 5. MOTOR ANALÍTICO (Lee de la nube)
-        window.actualizarGraficas = () => {
-            const encuestas = dbEnNube.encuestas || [];
-            const vista = document.getElementById('filtroVista').value;
-            const total = encuestas.length;
-            document.getElementById('kpi-total').textContent = total;
-            
-            if(total === 0) return document.getElementById('kpi-promedio').textContent = '0.0';
+        function generarSugerenciasDinamicas(vista, promedio, turnos, areas) {
+            const lista = document.getElementById('lista-sugerencias');
+            lista.innerHTML = '';
+            let html = '';
+            const crearAlerta = (titulo, texto, tipo) => {
+                const colors = { critico: 'bg-red-50 border-l-4 border-red-500 text-red-900', bueno: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900', alerta: 'bg-amber-50 border-l-4 border-amber-500 text-amber-900', info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-900' };
+                return `<li class="p-4 rounded-r-xl ${colors[tipo]} text-sm shadow-sm"><strong class="block text-base mb-1">${titulo}</strong><p class="opacity-90 leading-relaxed">${texto}</p></li>`;
+            };
 
-            let sum = { p1:0, p2:0, p3:0, p4:0, total:0 };
-            let turnos = { man: {sum:0, cnt:0}, tar: {sum:0, cnt:0} };
-            let dist = { 5:0, 4:0, 3:0, 2:0, 1:0 };
+            if (parseFloat(turnos.tarde) < parseFloat(turnos.mañana) - 0.5 && turnos.tarde > 0) {
+                html += crearAlerta('⚠️ Fatiga del Personal en la Tarde', `La calidad percibida cae a <b>${turnos.tarde}</b> en el turno vespertino. Considere rotar al personal.`, 'alerta');
+            }
 
-            encuestas.forEach(e => {
-                sum.p1 += e.p1||0; sum.p2 += e.p2||0; sum.p3 += e.p3||0; sum.p4 += e.p4||0;
-                let val = vista === 'todas' ? ((e.p1||0)+(e.p2||0)+(e.p3||0)+(e.p4||0))/4 : (e[vista.replace("pregunta_","p")]||0);
-                sum.total += val;
-                dist[Math.round(val)] = (dist[Math.round(val)]||0) + 1;
-                
-                if(e.fecha) {
-                    const h = new Date(e.fecha).getHours();
-                    if(h >= 8 && h < 13) { turnos.man.sum += val; turnos.man.cnt++; }
-                    else if(h >= 13 && h <= 17) { turnos.tar.sum += val; turnos.tar.cnt++; }
-                }
+            if (vista === 'todas') {
+                if (promedio >= 4.0) html += crearAlerta('🌟 Excelente Desempeño Global', 'La universidad mantiene estándares altos de servicio hoy.', 'bueno');
+                else if (promedio < 3.0) html += crearAlerta('🚨 Crisis de Satisfacción Múltiple', 'El promedio general es deficiente. Revise las áreas.', 'critico');
+                let menor = Math.min(areas.p1, areas.p2, areas.p3, areas.p4);
+                if (menor == areas.p2 && menor < 3.5) html += crearAlerta('⏳ Cuello de botella en Esperas', 'El tiempo de espera es la queja principal globalmente. Necesita más personal.', 'critico');
+            } else if (vista === 'pregunta_1') {
+                if (promedio < 3.5) html += crearAlerta('💳 Problemas con Pagos', 'Los procesos financieros están frustrando a los estudiantes.', 'critico');
+                else html += crearAlerta('✅ Fluidez en Matrícula', 'El proceso financiero opera de manera excelente.', 'bueno');
+            } else if (vista === 'pregunta_2') {
+                if (promedio < 3.5) html += crearAlerta('⏱️ Tiempos Inaceptables', `La calificación es de ${promedio}. Considere apps de turnos.`, 'critico');
+            } else if (vista === 'pregunta_3') {
+                if (promedio < 3.5) html += crearAlerta('📢 Deficiencia en Comunicación', 'Los estudiantes sienten que la información es confusa.', 'alerta');
+            }
+
+            if (html === '') html = crearAlerta('ℹ️ Datos Estables', 'Los indicadores están en rangos normales y operando sin anomalías.', 'info');
+            lista.innerHTML = html;
+        }
+
+        function renderizarVacio() {
+            document.getElementById('kpi-promedio').textContent = '0.0';
+            document.getElementById('kpi-sentimiento').textContent = 'Sin Datos';
+            document.getElementById('kpi-critica').textContent = '-';
+            document.getElementById('lista-sugerencias').innerHTML = '<li class="p-4 bg-slate-100 text-slate-500 rounded-lg text-center border border-slate-200">No hay datos suficientes. Utiliza el botón "Generar Datos".</li>';
+            if (chartTurnos) chartTurnos.destroy(); if (chartAreas) chartAreas.destroy(); if (chartDist) chartDist.destroy();
+        }
+
+        function inyectarDatosPrueba() {
+            let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+            let ahora = new Date();
+            for (let i = 0; i < 50; i++) {
+                let horaAleatoria = Math.floor(Math.random() * 9) + 8; // Entre 8 y 16 (8am a 4:59pm)
+                let fechaFalsa = new Date(ahora); fechaFalsa.setHours(horaAleatoria);
+                let penTarde = (horaAleatoria >= 13 && horaAleatoria <= 16) ? 2 : 0;
+                datos.push({
+                    pregunta_1: Math.floor(Math.random() * 2) + 3,
+                    pregunta_2: Math.max(1, Math.floor(Math.random() * 3) + 3 - penTarde),
+                    pregunta_3: Math.floor(Math.random() * 2) + 4,
+                    pregunta_4: Math.floor(Math.random() * 3) + 3,
+                    fecha: fechaFalsa.toISOString()
+                });
+            }
+            localStorage.setItem('encuestasUniversidad', JSON.stringify(datos));
+            actualizarDashboard();
+            mostrarNotificacion('50 Encuestas generadas con éxito');
+        }
+
+        function toggleFechasPDF() {
+            const rango = document.getElementById('exportar-rango').value;
+            const contenedorFechas = document.getElementById('contenedor-fechas');
+            if (rango === 'fechas') { contenedorFechas.classList.remove('hidden'); contenedorFechas.classList.add('grid'); } 
+            else { contenedorFechas.classList.add('hidden'); contenedorFechas.classList.remove('grid'); }
+        }
+
+        function generarReportePDF() {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+            const rango = document.getElementById('exportar-rango').value;
+
+            if (rango === 'fechas') {
+                const fechaInicio = document.getElementById('fecha-inicio').value;
+                const fechaFin = document.getElementById('fecha-fin').value;
+                if (!fechaInicio || !fechaFin) { mostrarNotificacion('Selecciona ambas fechas', 'error'); return; }
+                const inicio = new Date(fechaInicio); inicio.setHours(0,0,0,0);
+                const fin = new Date(fechaFin); fin.setHours(23,59,59,999);
+                datos = datos.filter(enc => {
+                    if(!enc.fecha) return false; const fechaEnc = new Date(enc.fecha);
+                    return fechaEnc >= inicio && fechaEnc <= fin;
+                });
+            }
+
+            if (datos.length === 0) { mostrarNotificacion('No hay datos en ese rango', 'error'); return; }
+
+            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("Reporte de Satisfacción - UnivAdmin", 14, 20);
+            doc.setFontSize(10); doc.setFont("helvetica", "normal");
+            doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 28);
+            doc.text(`Total encuestas en este reporte: ${datos.length}`, 14, 34);
+
+            const columnas = ["Fecha", "Hora", "Pagos", "Espera", "Info", "General", "Prom"];
+            const filas = datos.map(enc => {
+                const d = enc.fecha ? new Date(enc.fecha) : new Date();
+                const p1 = enc.pregunta_1||0, p2 = enc.pregunta_2||0, p3 = enc.pregunta_3||0, p4 = enc.pregunta_4||0;
+                return [d.toLocaleDateString(), d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), p1, p2, p3, p4, ((p1+p2+p3+p4)/4).toFixed(2)];
             });
 
-            const prom = (sum.total / total).toFixed(2);
-            document.getElementById('kpi-promedio').textContent = prom;
-            document.getElementById('kpi-sentimiento').textContent = prom >= 4 ? 'Positivo 😁' : prom < 3 ? 'Crítico 😠' : 'Neutral 😐';
+            doc.autoTable({ head: [columnas], body: filas, startY: 42, theme: 'striped', headStyles: { fillColor: [30, 41, 59] }, styles: { font: 'helvetica', fontSize: 9, halign: 'center' } });
+            doc.save(`Reporte_${Date.now()}.pdf`);
+            cerrarModalExportar();
+            mostrarNotificacion('PDF descargado con éxito');
+        }
 
-            // Pintar Graficas con Chart.js
-            window.Chart.defaults.font.family = 'Inter';
+        window.onload = function() {
+            const nombreGuardado = localStorage.getItem('nombreInstitucion');
+            const sedeGuardada = localStorage.getItem('sedeInstitucion');
+            const logoGuardado = localStorage.getItem('logoInstitucion');
+
+            if (nombreGuardado) {
+                document.getElementById('logo-texto').textContent = nombreGuardado;
+                const selectNombre = document.getElementById('input-nombre-institucion');
+                if(selectNombre) selectNombre.value = nombreGuardado;
+            }
+            if (sedeGuardada) {
+                document.getElementById('logo-sede').textContent = sedeGuardada;
+                const selectSede = document.getElementById('input-sede');
+                if(selectSede) selectSede.value = sedeGuardada;
+            }
+            if (logoGuardado) {
+                actualizarLogoUI(logoGuardado);
+            }
             
-            if(charts.t) charts.t.destroy();
-            charts.t = new window.Chart(document.getElementById('graficaTurnos'), { type: 'bar', data: { labels: ['Mañana', 'Tarde'], datasets: [{ label: 'Promedio', data: [turnos.man.cnt?turnos.man.sum/turnos.man.cnt:0, turnos.tar.cnt?turnos.tar.sum/turnos.tar.cnt:0], backgroundColor: '#3b82f6' }] }, options: { scales: {y:{max:5, beginAtZero:true}} } });
-
-            if(charts.a) charts.a.destroy();
-            charts.a = new window.Chart(document.getElementById('graficaAreas'), { type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ label:'Nota', data: [sum.p1/total, sum.p2/total, sum.p3/total, sum.p4/total], backgroundColor: ['#3b82f6','#f59e0b','#10b981','#8b5cf6'] }] }, options: { scales: {y:{max:5, beginAtZero:true}} } });
-
-            if(charts.d) charts.d.destroy();
-            charts.d = new window.Chart(document.getElementById('graficaDistribucion'), { type: 'doughnut', data: { labels: ['Exc','Bue','Reg','Mal','Muy'], datasets: [{ data:[dist[5],dist[4],dist[3],dist[2],dist[1]], backgroundColor:['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'] }] } });
+            actualizarDashboard();
         };
-
-        window.inyectarDatosPrueba = async () => {
-            mostrarNotificacion("Generando datos...");
-            if(!dbEnNube.encuestas) dbEnNube.encuestas = [];
-            for(let i=0; i<15; i++){
-                let d = new Date(); d.setHours(Math.floor(Math.random()*9)+8);
-                dbEnNube.encuestas.push({ p1: Math.floor(Math.random()*3)+3, p2: Math.floor(Math.random()*4)+1, p3: Math.floor(Math.random()*2)+4, p4: Math.floor(Math.random()*3)+3, fecha: d.toISOString() });
-            }
-            await subirDatos();
-            actualizarGraficas();
-        };
-
-        window.abrirModalLimpiar = async () => {
-            if(confirm("¿Borrar todo permanentemente?")) {
-                dbEnNube.encuestas = []; await subirDatos(); actualizarGraficas();
-                mostrarNotificacion("Base de datos limpia.");
-            }
-        };
-
-        // Arrancar
-        arrancarSistema();
     </script>
 </body>
 </html>
