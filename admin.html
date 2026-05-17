@@ -296,10 +296,7 @@
         // =========================================================================
         // 🚨 AQUÍ PONDRÁS TUS LLAVES DE FIREBASE CUANDO LO SUBAS A GITHUB 🚨
         // =========================================================================
-        let miConfiguracionFirebase = {
-            // apiKey: "TU_API_KEY",
-            // projectId: "TU_PROYECTO"
-        };
+        let miConfiguracionFirebase = {};
 
         if (typeof __firebase_config !== 'undefined') miConfiguracionFirebase = JSON.parse(__firebase_config);
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
@@ -308,7 +305,6 @@
         let app, auth, db;
         let conexionActiva = false;
 
-        // Inicialización Blindada
         if (tieneCredenciales) {
             try {
                 app = initializeApp(miConfiguracionFirebase);
@@ -346,6 +342,7 @@
         window.cerrarModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
         window.toggleFechasPDF = () => document.getElementById('contenedor-fechas').classList.toggle('hidden');
 
+        // MODO HÍBRIDO: GUARDAR CONFIGURACIÓN
         window.guardarConfiguracion = async () => {
             const nombre = document.getElementById('input-nombre-institucion').value;
             const sede = document.getElementById('input-sede').value;
@@ -362,58 +359,107 @@
                     document.getElementById('logo-imagen').src = data.logo;
                     document.getElementById('logo-imagen').classList.remove('hidden');
                     document.getElementById('icono-por-defecto').classList.add('hidden');
+                    
                     if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
+                    else localStorage.setItem('configUniversidad', JSON.stringify(data)); // Fallback Local
                 };
                 reader.readAsDataURL(logoInp.files[0]);
             } else {
                 if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
+                else localStorage.setItem('configUniversidad', JSON.stringify(data)); // Fallback Local
             }
             window.mostrarNotificacion('Configuración visual actualizada');
         };
 
         window.guardarPreguntas = async () => {
-            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
             const lista = [ document.getElementById('input-preg-1').value, document.getElementById('input-preg-2').value, document.getElementById('input-preg-3').value, document.getElementById('input-preg-4').value ];
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista });
+            if (conexionActiva && auth.currentUser) {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista });
+            } else {
+                localStorage.setItem('preguntasUniversidad', JSON.stringify({lista})); // Fallback Local
+            }
             window.mostrarNotificacion('Preguntas Sincronizadas');
         };
 
         window.ejecutarLimpiezaDatos = async () => {
-            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
             window.cerrarModalLimpiar();
-            const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
-            snap.forEach(d => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', d.id)));
-            window.mostrarNotificacion('Memoria borrada de la nube');
+            if (conexionActiva && auth.currentUser) {
+                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
+                snap.forEach(d => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', d.id)));
+            } else {
+                localStorage.removeItem('encuestasUniversidad'); // Fallback Local
+                encuestasGlobales = [];
+                window.actualizarDashboard();
+            }
+            window.mostrarNotificacion('Memoria borrada');
         };
 
         window.inyectarDatosPrueba = async () => {
-            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase para esto', 'error');
             window.mostrarNotificacion('Inyectando datos de prueba...');
+            let locales = [];
+            if(!conexionActiva) locales = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+            
             for(let i=0; i<15; i++){
-                let h = Math.floor(Math.random()*9)+8; // 8am a 5pm
+                let h = Math.floor(Math.random()*9)+8; 
                 let d = new Date(); d.setHours(h);
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), {
+                let datos = {
                     pregunta_1: Math.floor(Math.random()*3)+3, pregunta_2: Math.max(1, Math.floor(Math.random()*4)+1),
                     pregunta_3: Math.floor(Math.random()*2)+4, pregunta_4: Math.floor(Math.random()*3)+3, fecha: d.toISOString()
-                });
+                };
+                if (conexionActiva && auth.currentUser) await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), datos);
+                else locales.push(datos); // Fallback Local
+            }
+            
+            if(!conexionActiva) {
+                localStorage.setItem('encuestasUniversidad', JSON.stringify(locales));
+                encuestasGlobales = locales;
+                window.actualizarDashboard();
             }
         };
 
+        window.renderizarTareasLocal = () => {
+            const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
+            let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+            ts.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
+                let col = t.estado==='resuelto'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700';
+                tbody.innerHTML += `<tr class="border-b"><td class="p-4">${t.texto}</td><td class="p-4 text-slate-500">${t.responsable}</td><td class="p-4"><span class="px-2 py-1 rounded text-xs ${col}">${t.estado}</span></td><td class="p-4"><select onchange="cambiarEstadoTarea('${t.id}', this.value)" class="text-sm border p-1 rounded"><option value="pendiente" ${t.estado==='pendiente'?'selected':''}>Pendiente</option><option value="resuelto" ${t.estado==='resuelto'?'selected':''}>Resuelto</option></select> <button onclick="eliminarTarea('${t.id}')" class="text-red-500 ml-2">❌</button></td></tr>`;
+            });
+        };
+
         window.agregarTarea = async () => {
-            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
             const txt = document.getElementById('nueva-tarea-texto').value;
             const resp = document.getElementById('nueva-tarea-responsable').value;
             if(!txt) return;
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
+            
+            if (conexionActiva && auth.currentUser) {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
+            } else {
+                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+                ts.push({ id: 't_'+Date.now(), texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
+                localStorage.setItem('tareasUniversidad', JSON.stringify(ts));
+                window.renderizarTareasLocal();
+            }
             document.getElementById('nueva-tarea-texto').value = '';
             window.mostrarNotificacion('Tarea asignada');
         };
 
         window.cambiarEstadoTarea = async (id, estado) => {
             if (conexionActiva && auth.currentUser) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id), { estado });
+            else {
+                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+                let i = ts.findIndex(t => t.id === id);
+                if(i > -1) { ts[i].estado = estado; localStorage.setItem('tareasUniversidad', JSON.stringify(ts)); window.renderizarTareasLocal(); }
+            }
         };
+        
         window.eliminarTarea = async (id) => {
             if (conexionActiva && auth.currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id));
+            else {
+                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
+                ts = ts.filter(t => t.id !== id);
+                localStorage.setItem('tareasUniversidad', JSON.stringify(ts));
+                window.renderizarTareasLocal();
+            }
         };
 
         window.actualizarDashboard = () => {
@@ -421,7 +467,11 @@
             const total = encuestasGlobales.length;
             document.getElementById('kpi-total').textContent = total;
             
-            if(total === 0) return document.getElementById('kpi-promedio').textContent = '0.0';
+            if(total === 0) {
+                document.getElementById('kpi-promedio').textContent = '0.0';
+                if(chartTurnos) chartTurnos.destroy(); if(chartAreas) chartAreas.destroy(); if(chartDist) chartDist.destroy();
+                return;
+            }
 
             let sum = { p1:0, p2:0, p3:0, p4:0, total:0 };
             let turnos = { man: {sum:0, cnt:0}, tar: {sum:0, cnt:0} };
@@ -479,9 +529,32 @@
 
         async function arrancarAdmin() {
             if (!conexionActiva) {
+                // FALLBACK: MODO LOCAL (No hay llaves de Firebase)
                 document.getElementById('estado-nube').textContent = "⚠️ MODO LOCAL (Firebase Inactivo)";
                 document.getElementById('estado-nube').classList.replace('text-slate-500', 'text-amber-600');
-                return window.mostrarNotificacion("Falta Configuración de Firebase", "error");
+                
+                // 1. Cargar Configuración Visual
+                let conf = JSON.parse(localStorage.getItem('configUniversidad')) || {};
+                if(conf.nombre) document.getElementById('logo-texto').textContent = conf.nombre;
+                if(conf.sede) document.getElementById('logo-sede').textContent = conf.sede;
+                if(conf.logo) { document.getElementById('logo-imagen').src = conf.logo; document.getElementById('logo-imagen').classList.remove('hidden'); document.getElementById('icono-por-defecto').classList.add('hidden'); }
+
+                // 2. Cargar Datos y Tareas
+                encuestasGlobales = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+                window.actualizarDashboard();
+                window.renderizarTareasLocal();
+
+                // 3. Escuchar a la otra pestaña (Encuesta) en vivo
+                window.addEventListener('storage', (e) => {
+                    if (e.key === 'encuestasUniversidad') {
+                        let nuevas = JSON.parse(e.newValue) || [];
+                        if (nuevas.length > encuestasGlobales.length) window.mostrarNotificacion("¡Nueva encuesta recibida!");
+                        encuestasGlobales = nuevas;
+                        window.actualizarDashboard();
+                    }
+                });
+
+                return window.mostrarNotificacion("Modo Local Activo - Sin Nube");
             }
 
             try {
