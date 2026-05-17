@@ -29,16 +29,10 @@
 
     <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-xl z-20 shrink-0">
         <div class="p-6 border-b border-slate-800">
-            <div class="flex items-center gap-3">
-                <div id="contenedor-logo" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
-                    <span id="icono-por-defecto" class="text-xl">🎓</span>
-                    <img id="logo-imagen" src="" alt="Logo" class="w-full h-full object-cover hidden">
-                </div>
-                <div class="overflow-hidden">
-                    <h2 id="logo-texto" class="text-xl font-bold text-blue-400 truncate w-full">UnivAdmin</h2>
-                    <p id="logo-sede" class="text-slate-400 text-xs mt-0.5 truncate w-full">Centro de Inteligencia</p>
-                </div>
-            </div>
+            <h2 class="text-2xl font-bold text-blue-400 flex items-center gap-2">
+                <span>🎓</span> <span id="logo-texto">UnivAdmin</span>
+            </h2>
+            <p class="text-slate-400 text-sm mt-1">Centro de Inteligencia</p>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="menu-navegacion">
             <button onclick="cambiarVista('vista-dashboard', this)" class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item">
@@ -174,55 +168,24 @@
             </header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
+                        <input type="text" id="input-nombre-institucion" value="Universidad Nacional" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                    </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
-                                <option value="Universidad Nacional">Universidad Nacional</option>
-                                <option value="Universidad Martin Lutero" selected>Universidad Martin Lutero</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
-                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer transition-colors">
-                                <option value="Central - Managua">Central - Managua</option>
-                                <option value="Masaya">Masaya</option>
-                                <option value="Ocotal">Ocotal</option>
-                                <option value="Leon">León</option>
-                                <option value="Chinandega">Chinandega</option>
-                                <option value="El Rama">El Rama</option>
-                                <option value="Jinotega">Jinotega</option>
-                                <option value="Nueva Guinea">Nueva Guinea</option>
-                                <option value="San Carlos">San Carlos</option>
-                                <option value="Santo Tomas">Santo Tomás</option>
-                                <option value="Siuna">Siuna</option>
-                                <option value="Jalapa">Jalapa</option>
-                            </select>
-                        </div>
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Logo de la Institución (Opcional)</label>
-                        <input type="file" id="input-logo" accept=".jpg, .jpeg, .png" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-all border border-slate-300 rounded-lg bg-slate-50 cursor-pointer">
-                        <p class="text-xs text-slate-500 mt-2">Formatos aceptados: JPG, PNG. Recomendado: 150x150px.</p>
-                    </div>
-
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-100">
-                        <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Correo del Administrador</label>
-                            <input type="email" value="admin@uml.edu.ni" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                            <input type="email" value="admin@universidad.edu" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Huso Horario</label>
                             <select class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none cursor-pointer">
-                                <option>GMT-6 (América/Managua)</option>
                                 <option>GMT-5 (América/Bogotá)</option>
                                 <option>GMT-6 (América/México_City)</option>
+                                <option>GMT-3 (América/Buenos_Aires)</option>
                             </select>
                         </div>
                     </div>
-                    
                     <div class="pt-6 border-t border-slate-100 flex justify-end">
                         <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
                             Guardar Cambios
@@ -453,51 +416,11 @@
             mostrarNotificacion(mensaje);
         }
 
-        function actualizarLogoUI(logoDataUrl) {
-            const imgLogo = document.getElementById('logo-imagen');
-            const iconoDefecto = document.getElementById('icono-por-defecto');
-            
-            if (logoDataUrl) {
-                imgLogo.src = logoDataUrl;
-                imgLogo.classList.remove('hidden');
-                iconoDefecto.classList.add('hidden');
-            } else {
-                imgLogo.classList.add('hidden');
-                iconoDefecto.classList.remove('hidden');
-            }
-        }
-
         function guardarConfiguracion() {
             const nuevoNombre = document.getElementById('input-nombre-institucion').value;
-            const nuevaSede = document.getElementById('input-sede').value;
-            const inputLogo = document.getElementById('input-logo');
-            
-            // Actualizar texto UI
             document.getElementById('logo-texto').textContent = nuevoNombre || 'UnivAdmin';
-            document.getElementById('logo-sede').textContent = nuevaSede || 'Centro de Inteligencia';
-            
-            // Guardar textos en memoria
             localStorage.setItem('nombreInstitucion', nuevoNombre);
-            localStorage.setItem('sedeInstitucion', nuevaSede);
-
-            // Procesar la imagen si el usuario subió una
-            if (inputLogo.files && inputLogo.files[0]) {
-                const archivo = inputLogo.files[0];
-                const lector = new FileReader();
-                
-                lector.onload = function(e) {
-                    const base64Imagen = e.target.result;
-                    // Guardar en LocalStorage
-                    localStorage.setItem('logoInstitucion', base64Imagen);
-                    // Actualizar UI
-                    actualizarLogoUI(base64Imagen);
-                    mostrarNotificacion('Configuración y logo guardados correctamente');
-                };
-                
-                lector.readAsDataURL(archivo);
-            } else {
-                mostrarNotificacion('Configuración guardada correctamente');
-            }
+            mostrarNotificacion('Configuración guardada correctamente');
         }
 
         // Sistema de Modales Personalizados (Reemplazo de confirm y prompt nativos)
@@ -800,23 +723,10 @@
 
         window.onload = function() {
             const nombreGuardado = localStorage.getItem('nombreInstitucion');
-            const sedeGuardada = localStorage.getItem('sedeInstitucion');
-            const logoGuardado = localStorage.getItem('logoInstitucion');
-
             if (nombreGuardado) {
                 document.getElementById('logo-texto').textContent = nombreGuardado;
-                const selectNombre = document.getElementById('input-nombre-institucion');
-                if(selectNombre) selectNombre.value = nombreGuardado;
+                document.getElementById('input-nombre-institucion').value = nombreGuardado;
             }
-            if (sedeGuardada) {
-                document.getElementById('logo-sede').textContent = sedeGuardada;
-                const selectSede = document.getElementById('input-sede');
-                if(selectSede) selectSede.value = sedeGuardada;
-            }
-            if (logoGuardado) {
-                actualizarLogoUI(logoGuardado);
-            }
-            
             actualizarDashboard();
         };
     </script>
