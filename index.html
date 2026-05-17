@@ -171,23 +171,36 @@
         </div>
     </div>
 
-    <script>
-        // 1. Definir las preguntas por defecto de la universidad
-        const preguntasPorDefecto = [
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // ==========================================
+        // CONFIGURACIÓN DE LA NUBE
+        // NOTA PARA GITHUB: Cuando subas esto a tu repositorio, deberás crear tu propio proyecto 
+        // de base de datos gratuito (ej. Firebase) y colocar tus credenciales aquí abajo.
+        // ==========================================
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            /* apiKey: "TU_API_KEY", authDomain: "TU_DOMINIO", projectId: "TU_PROYECTO" */
+        };
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Variables de estado
+        let preguntas = [
             "¿Cómo califica la atención recibida durante su proceso de pago/matrícula?",
             "¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?",
             "¿Cómo califica la claridad de la información brindada por el personal?",
             "En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?"
         ];
-
-        // Intentar buscar preguntas personalizadas enviadas desde el Admin
-        let preguntas = JSON.parse(localStorage.getItem('preguntasUniversidad')) || preguntasPorDefecto;
-
-        // 2. Variables de estado
         let preguntaActual = 0;
-        let respuestasActuales = {}; // Guardará las respuestas de un estudiante
+        let respuestasActuales = {};
 
-        // 3. Referencias a elementos del DOM
+        // Referencias DOM
         const textoPregunta = document.getElementById('texto-pregunta');
         const indicadorProgreso = document.getElementById('indicador-progreso');
         const botones = document.querySelectorAll('.boton-opcion');
@@ -195,12 +208,9 @@
         const seccionAgradecimiento = document.getElementById('agradecimiento');
         const areaPregunta = document.getElementById('area-pregunta');
 
-        // 4. Función para mostrar la pregunta correspondiente
         function mostrarPregunta() {
             textoPregunta.textContent = preguntas[preguntaActual];
             indicadorProgreso.textContent = `Pregunta ${preguntaActual + 1} de ${preguntas.length}`;
-            
-            // Pequeña animación de entrada
             areaPregunta.style.opacity = 0;
             setTimeout(() => {
                 areaPregunta.style.transition = "opacity 0.3s ease";
@@ -208,58 +218,73 @@
             }, 50);
         }
 
-        // 5. Función que se ejecuta al tocar una opción
-        function registrarRespuesta(evento) {
-            const botonTocado = evento.currentTarget;
-            const valor = parseInt(botonTocado.getAttribute('data-valor'));
-
-            // Guardar respuesta actual en memoria temporal
+        async function registrarRespuesta(evento) {
+            const valor = parseInt(evento.currentTarget.getAttribute('data-valor'));
             respuestasActuales[`pregunta_${preguntaActual + 1}`] = valor;
-
             preguntaActual++;
 
             if (preguntaActual < preguntas.length) {
-                // Si hay más preguntas, mostrar la siguiente
                 mostrarPregunta();
             } else {
-                // Si terminamos, guardar en LocalStorage y mostrar agradecimiento
-                finalizarEncuesta();
+                await finalizarEncuesta();
             }
         }
 
-        // 6. Función para guardar datos y finalizar
-        function finalizarEncuesta() {
-            // --- CONEXIÓN: GUARDAR EN MEMORIA (LOCALSTORAGE) ---
-            let historialEncuestas = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
-            
-            // Añadir marca de tiempo para saber cuándo se hizo
-            respuestasActuales.fecha = new Date().toISOString();
-            
-            historialEncuestas.push(respuestasActuales);
-            localStorage.setItem('encuestasUniversidad', JSON.stringify(historialEncuestas));
-            // ---------------------------------------------------
-
-            // Transición visual
+        async function finalizarEncuesta() {
+            // Animación visual inmediata
             contenedorEncuesta.classList.add('oculto');
             seccionAgradecimiento.classList.remove('oculto');
+            
+            respuestasActuales.fecha = new Date().toISOString();
 
-            // Preparar para el siguiente estudiante (reseteo)
+            try {
+                // GUARDAR EN LA NUBE EN TIEMPO REAL
+                if(auth.currentUser) {
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), respuestasActuales);
+                }
+            } catch (e) {
+                console.error("Error al guardar en la nube", e);
+            }
+
+            // Reseteo para el siguiente alumno
             setTimeout(() => {
                 preguntaActual = 0;
                 respuestasActuales = {};
-                mostrarPregunta(); // Vuelve a la primera pregunta
+                mostrarPregunta(); 
                 seccionAgradecimiento.classList.add('oculto');
                 contenedorEncuesta.classList.remove('oculto');
-            }, 4000); // Muestra el agradecimiento por 4 segundos
+            }, 4000);
         }
 
-        // 7. Inicializar la encuesta
-        botones.forEach(boton => {
-            boton.addEventListener('click', registrarRespuesta);
-        });
+        async function iniciarSistema() {
+            try {
+                // Autenticar primero (Requisito de seguridad)
+                if (typeof __initial_auth_token !== 'undefined') {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
 
-        // Mostrar la primera pregunta al cargar
-        mostrarPregunta();
+                // Escuchar si el Administrador cambia las preguntas en tiempo real
+                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), (docSnap) => {
+                    if(docSnap.exists() && docSnap.data().lista) {
+                        preguntas = docSnap.data().lista;
+                        if(preguntaActual === 0) mostrarPregunta();
+                    }
+                }, (error) => console.log("Usando preguntas por defecto."));
+
+                // Asignar eventos y mostrar primera pregunta
+                botones.forEach(boton => boton.addEventListener('click', registrarRespuesta));
+                mostrarPregunta();
+
+            } catch (error) {
+                console.error("No se pudo conectar a la nube:", error);
+                textoPregunta.textContent = "Error de conexión. Intente recargar.";
+            }
+        }
+
+        // Arrancar el sistema
+        iniciarSistema();
     </script>
 
 </body>
