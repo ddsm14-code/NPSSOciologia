@@ -172,13 +172,16 @@
     </div>
 
     <script>
-        // 1. Definir las preguntas de la universidad
-        const preguntas = [
+        // 1. Definir las preguntas por defecto de la universidad
+        const preguntasPorDefecto = [
             "¿Cómo califica la atención recibida durante su proceso de pago/matrícula?",
             "¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?",
             "¿Cómo califica la claridad de la información brindada por el personal?",
             "En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?"
         ];
+
+        // Intentar buscar preguntas personalizadas enviadas desde el Admin
+        let preguntas = JSON.parse(localStorage.getItem('preguntasUniversidad')) || preguntasPorDefecto;
 
         // 2. Variables de estado
         let preguntaActual = 0;
