@@ -16,22 +16,31 @@
         ::-webkit-scrollbar { width: 8px; height: 8px; }
         ::-webkit-scrollbar-track { background: #f1f5f9; }
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
-        .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
-        .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
-        .toggle-label { width: 3rem; height: 1.5rem; background-color: #cbd5e1; border-radius: 9999px; transition: all 0.3s; }
     </style>
 </head>
 <body class="flex h-screen bg-slate-50 text-slate-800 overflow-hidden">
 
+    <!-- MODAL DE LA NUBE AUTOMÁTICA -->
+    <div id="modal-cloud" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex justify-center items-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg p-8 text-center">
+            <span class="text-5xl mb-4 block">☁️</span>
+            <h3 class="text-2xl font-bold text-slate-800 mb-2">¡Base de Datos Pública Creada!</h3>
+            <p class="text-slate-600 mb-6">El código ha fabricado automáticamente un espacio en internet para guardar tus encuestas. Tu ID único es:</p>
+            <div class="bg-slate-100 p-4 rounded-xl text-3xl font-mono font-bold text-blue-600 tracking-wider mb-6 cursor-pointer select-all">
+                <span id="txt-cloud-id">Generando...</span>
+            </div>
+            <p class="text-sm text-red-500 font-bold mb-6">⚠️ PASO FINAL: Copia el código de arriba, abre tu archivo <b>index.html</b> y pégalo donde dice "PEGA_AQUI_EL_ID".</p>
+            <button onclick="document.getElementById('modal-cloud').classList.add('hidden')" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition">Entendido, ya lo copié</button>
+        </div>
+    </div>
+
+    <!-- MENÚ LATERAL -->
     <aside class="w-72 bg-slate-900 text-white flex flex-col shadow-xl z-20 shrink-0">
         <div class="p-6 border-b border-slate-800">
             <div class="flex items-center gap-3">
-                <div id="contenedor-logo" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0">
+                <div id="contenedor-logo" class="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center overflow-hidden shrink-0 bg-white">
                     <span id="icono-por-defecto" class="text-xl">🎓</span>
-                    <img id="logo-imagen" src="" alt="Logo" class="w-full h-full object-cover hidden">
+                    <img id="logo-imagen" src="" alt="Logo" class="w-full h-full object-contain hidden">
                 </div>
                 <div class="overflow-hidden">
                     <h2 id="logo-texto" class="text-xl font-bold text-blue-400 truncate w-full">UnivAdmin</h2>
@@ -40,7 +49,7 @@
             </div>
         </div>
         <nav class="flex-1 p-4 space-y-2 overflow-y-auto" id="menu-navegacion">
-            <button onclick="cambiarVista('vista-dashboard', this)" class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item">
+            <button onclick="cambiarVista('vista-dashboard', this)" class="w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md transition-all nav-item">
                 <span>📊</span> Dashboard Analítico
             </button>
             <button onclick="cambiarVista('vista-configuracion', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
@@ -49,9 +58,6 @@
             <button onclick="cambiarVista('vista-personalizar', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
                 <span>🎨</span> Personalizar Encuesta
             </button>
-            <button onclick="cambiarVista('vista-alertas', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
-                <span>🔔</span> Alertas Operativas
-            </button>
             <div class="pt-4 mt-2 border-t border-slate-800"></div>
             <button onclick="abrirModalExportar()" class="w-full text-left flex items-center gap-3 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-3 rounded-xl border border-slate-600 transition-all cursor-pointer">
                 <span>📥</span> Exportar PDF
@@ -59,69 +65,64 @@
         </nav>
         <div class="p-4 border-t border-slate-800">
             <button onclick="inyectarDatosPrueba()" class="w-full bg-slate-800 hover:bg-slate-700 text-slate-300 text-sm font-medium py-2 px-4 rounded-lg transition-colors border border-slate-700">
-                🧪 Generar Datos
+                🧪 Generar 15 Datos Falsos
             </button>
             <button onclick="abrirModalLimpiar()" class="w-full mt-2 text-red-400 hover:text-red-300 text-xs text-center transition-colors">
-                Limpiar Memoria
+                Limpiar Nube
             </button>
         </div>
     </aside>
 
+    <!-- CONTENIDO PRINCIPAL -->
     <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-slate-50">
         
+        <!-- VISTA: DASHBOARD -->
         <div id="vista-dashboard" class="seccion-vista block">
             <header class="bg-white px-8 py-6 flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-200 sticky top-0 z-10">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900">Métricas de Satisfacción</h1>
                     <div class="flex items-center gap-2 mt-1">
-                        <span class="relative flex h-3 w-3">
-                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
-                        </span>
-                        <p class="text-sm text-slate-500 font-medium" id="estado-nube">Conectado a la Nube</p>
+                        <span class="relative flex h-3 w-3"><span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span><span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span></span>
+                        <p class="text-sm text-slate-500 font-medium tracking-wide">Sincronizando con internet...</p>
                     </div>
                 </div>
-
                 <div class="mt-4 lg:mt-0 flex items-center gap-3 bg-slate-100 p-2 rounded-xl border border-slate-200">
-                    <label for="filtroVista" class="text-sm font-semibold text-slate-600 pl-2">Vista de Análisis:</label>
-                    <select id="filtroVista" onchange="actualizarDashboard()" class="bg-white border-none text-sm font-bold text-slate-800 py-2 px-4 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
+                    <label class="text-sm font-semibold text-slate-600 pl-2">Vista:</label>
+                    <select id="filtroVista" onchange="actualizarGraficas()" class="bg-white border-none text-sm font-bold text-slate-800 py-2 px-4 rounded-lg shadow-sm focus:ring-2 outline-none">
                         <option value="todas">🌐 Vista General</option>
                         <option value="pregunta_1">💳 1. Pagos y Matrícula</option>
                         <option value="pregunta_2">⏱️ 2. Tiempos de Espera</option>
-                        <option value="pregunta_3">ℹ️ 3. Claridad de Información</option>
+                        <option value="pregunta_3">ℹ️ 3. Información</option>
                         <option value="pregunta_4">🌟 4. Atención General</option>
                     </select>
                 </div>
             </header>
 
             <div class="p-8">
+                <!-- KPIs -->
                 <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Total Encuestas</span>
                         <span class="text-4xl font-black text-slate-800" id="kpi-total">0</span>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2 relative z-10">Promedio Seleccionado</span>
-                        <div class="flex items-end gap-2 relative z-10">
-                            <span class="text-4xl font-black text-blue-600" id="kpi-promedio">0.0</span>
-                            <span class="text-lg font-bold text-slate-400 mb-1">/ 5</span>
-                        </div>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Promedio</span>
+                        <div class="flex items-end gap-2"><span class="text-4xl font-black text-blue-600" id="kpi-promedio">0.0</span><span class="text-lg font-bold text-slate-400 mb-1">/ 5</span></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Sentimiento Dominante</span>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Sentimiento</span>
                         <span class="text-2xl font-bold text-slate-700 mt-2" id="kpi-sentimiento">-</span>
                     </div>
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500 flex flex-col" id="kpi-card-critica">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área de Riesgo</span>
-                        <span class="text-xl font-bold text-slate-800 mt-2 leading-tight" id="kpi-critica">-</span>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500 flex flex-col">
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área Crítica</span>
+                        <span class="text-xl font-bold text-slate-800 mt-2" id="kpi-critica">-</span>
                     </div>
                 </section>
 
+                <!-- GRÁFICAS -->
                 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-slate-800">Rendimiento por Turnos (8am - 5pm)</h3>
-                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-6">Turnos (8am - 5pm)</h3>
                         <div class="h-64 relative"><canvas id="graficaTurnos"></canvas></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -130,65 +131,42 @@
                     </div>
                 </section>
 
+                <!-- WORKFLOW Y SUGERENCIAS -->
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
-                        <h3 class="text-lg font-bold text-slate-800 mb-2">Distribución de Sentimientos</h3>
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-2">Sentimientos</h3>
                         <div class="h-56 relative flex justify-center"><canvas id="graficaDistribucion"></canvas></div>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><span>🤖</span> Recomendaciones de IA</h3>
-                        <div class="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-100 overflow-y-auto">
-                            <ul id="lista-sugerencias" class="space-y-4"></ul>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4">Planes de Acción (Workflow)</h3>
+                        <div class="flex gap-2 mb-4">
+                            <input type="text" id="input-tarea" placeholder="Ej: Hablar con cajero..." class="flex-1 border border-slate-300 rounded-lg p-2 outline-none">
+                            <button onclick="agregarTarea()" class="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold">Asignar</button>
                         </div>
-                    </div>
-                </section>
-
-                <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-                        <div>
-                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span>🛠️</span> Planes de Acción (Workflow)</h3>
-                            <p class="text-sm text-slate-500 mt-1">Asigna tareas basadas en los hallazgos gráficos.</p>
+                        <div class="overflow-y-auto max-h-48 border border-slate-200 rounded-lg">
+                            <table class="w-full text-left text-sm"><tbody id="lista-tareas" class="divide-y divide-slate-100 bg-slate-50"></tbody></table>
                         </div>
-                    </div>
-                    <div class="flex flex-col md:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <input type="text" id="nueva-tarea-texto" placeholder="Ej: Capacitar personal..." class="flex-1 bg-white border border-slate-300 rounded-lg p-3 outline-none">
-                        <select id="nueva-tarea-responsable" class="bg-white border border-slate-300 rounded-lg p-3 outline-none">
-                            <option value="Supervisor de Admisión">Supervisor de Admisión</option>
-                            <option value="Soporte TI">Soporte TI</option>
-                            <option value="Director Académico">Director Académico</option>
-                        </select>
-                        <button onclick="agregarTarea()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">Asignar</button>
-                    </div>
-                    <div class="overflow-x-auto rounded-xl border border-slate-200">
-                        <table class="w-full text-left text-sm text-slate-600">
-                            <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-xs">
-                                <tr><th class="p-4">Acción</th><th class="p-4">Responsable</th><th class="p-4">Estado</th><th class="p-4">Gestión</th></tr>
-                            </thead>
-                            <tbody id="lista-tareas" class="divide-y divide-slate-200 bg-white"></tbody>
-                        </table>
                     </div>
                 </section>
             </div>
         </div>
 
+        <!-- VISTA: CONFIGURACIÓN GENERAL -->
         <div id="vista-configuracion" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200">
-                <h1 class="text-2xl font-bold text-slate-900">Configuración General</h1>
-                <p class="text-sm text-slate-500 mt-1">Gestiona la identidad visual para los reportes.</p>
-            </header>
+            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Configuración General</h1></header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-3 outline-none">
+                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
                                 <option value="Universidad Martin Lutero">Universidad Martin Lutero</option>
                                 <option value="UnivAdmin Global">UnivAdmin Global</option>
                             </select>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
-                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-3 outline-none">
+                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
                                 <option value="Central - Managua">Central - Managua</option>
                                 <option value="Masaya">Masaya</option>
                                 <option value="Ocotal">Ocotal</option>
@@ -206,280 +184,222 @@
                     </div>
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Logotipo de la Institución</label>
-                        <input type="file" id="input-logo" accept=".jpg, .jpeg, .png, .svg" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
+                        <input type="file" id="input-logo" accept="image/*" class="block w-full text-sm file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
                     </div>
-                    <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm transition-all flex items-center gap-2">
-                            <span>💾</span> Guardar Cambios
-                        </button>
+                    <div class="pt-6 flex justify-end">
+                        <button onclick="guardarConfiguracion()" class="bg-blue-600 text-white font-medium py-2.5 px-6 rounded-lg">Guardar Cambios</button>
                     </div>
                 </div>
             </div>
         </div>
 
+        <!-- VISTA: PERSONALIZAR ENCUESTA -->
         <div id="vista-personalizar" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200">
-                <h1 class="text-2xl font-bold text-slate-900">Personalizar Encuesta</h1>
-            </header>
+            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Personalizar Preguntas</h1></header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-4">
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 1</label>
-                        <input type="text" id="input-preg-1" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 2</label>
-                        <input type="text" id="input-preg-2" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 3</label>
-                        <input type="text" id="input-preg-3" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 4</label>
-                        <input type="text" id="input-preg-4" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
-                    </div>
-                    <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarPreguntas()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all">🔄 Sincronizar Cambios</button>
-                    </div>
+                    <input type="text" id="preg-1" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?">
+                    <input type="text" id="preg-2" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?">
+                    <input type="text" id="preg-3" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="¿Cómo califica la claridad de la información brindada por el personal?">
+                    <input type="text" id="preg-4" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none" value="En general, ¿Cómo califica la calidad del servicio administrativo hoy?">
+                    <button onclick="guardarPreguntas()" class="bg-blue-600 text-white px-6 py-2 rounded-lg mt-4 w-full font-bold">Sincronizar a todos los celulares</button>
                 </div>
             </div>
         </div>
 
-        <div id="vista-alertas" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Alertas Operativas</h1></header>
-            <div class="p-8 max-w-4xl">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    <p class="text-slate-500">Esta sección controlará los correos automáticos (Próximamente).</p>
-                </div>
-            </div>
-        </div>
     </main>
 
-    <div id="modal-exportar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
-            <h3 class="text-xl font-bold text-slate-800 mb-4">Exportar PDF</h3>
-            <select id="exportar-rango" class="w-full border-slate-300 rounded-lg p-2.5 bg-slate-50 border outline-none mb-4" onchange="toggleFechasPDF()">
-                <option value="total">Historial Completo</option>
-                <option value="fechas">Por Fechas</option>
-            </select>
-            <div id="contenedor-fechas" class="hidden grid-cols-2 gap-4 mb-4">
-                <input type="date" id="fecha-inicio" class="w-full border-slate-300 rounded-lg p-2 bg-slate-50 border">
-                <input type="date" id="fecha-fin" class="w-full border-slate-300 rounded-lg p-2 bg-slate-50 border">
-            </div>
-            <div class="flex justify-end gap-3">
-                <button onclick="cerrarModalExportar()" class="px-4 py-2 bg-slate-100 rounded-lg">Cancelar</button>
-                <button onclick="generarReportePDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Descargar</button>
-            </div>
-        </div>
+    <!-- NOTIFICACIÓN -->
+    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50">
+        <span id="toast-message" class="text-sm font-medium">✅ Operación exitosa</span>
     </div>
 
-    <div id="modal-limpiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity text-center">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
-            <h3 class="text-lg font-bold text-slate-900 mb-2">¿Borrar todos los datos?</h3>
-            <div class="flex justify-center gap-3 mt-6">
-                <button onclick="cerrarModalLimpiar()" class="px-4 py-2 w-full bg-slate-100 rounded-lg">Cancelar</button>
-                <button onclick="ejecutarLimpiezaDatos()" class="px-4 py-2 w-full bg-red-600 text-white rounded-lg">Borrar</button>
-            </div>
-        </div>
-    </div>
+    <!-- SCRIPT PRINCIPAL QUE CREA LA BASE DE DATOS -->
+    <script>
+        // ========================================================
+        // EL CORAZÓN DEL SISTEMA: FABRICADOR DE BASE DE DATOS API
+        // ========================================================
+        const API_URL = "https://jsonblob.com/api/jsonBlob";
+        let CLOUD_ID = localStorage.getItem("univ_db_id_public");
+        
+        let dbEnNube = { encuestas: [], tareas: [], preguntas: [] };
+        let charts = {}; // Para guardar las graficas
 
-    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3">
-        <span id="toast-icon">✅</span><span id="toast-message" class="text-sm font-medium">Operación exitosa</span>
-    </div>
+        // 1. ARRANCAR EL SISTEMA
+        async function arrancarSistema() {
+            if (!CLOUD_ID) {
+                try {
+                    // Creamos una base de datos vacía en internet (POST)
+                    let res = await fetch(API_URL, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json", "Accept": "application/json" },
+                        body: JSON.stringify({ encuestas: [], tareas: [], preguntas: [] })
+                    });
+                    // Obtenemos el ID generado
+                    let urlDestino = res.headers.get("Location");
+                    CLOUD_ID = urlDestino.split('/').pop();
+                    localStorage.setItem("univ_db_id_public", CLOUD_ID); // Lo guardamos en la PC para no perderlo
+                    
+                    // Mostramos el código gigante al administrador
+                    document.getElementById("txt-cloud-id").textContent = CLOUD_ID;
+                    document.getElementById("modal-cloud").classList.remove("hidden");
+                } catch(e) {
+                    alert("Error creando la base de datos de internet.");
+                }
+            } else {
+                mostrarNotificacion("✅ Conectado a BD: " + CLOUD_ID);
+            }
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
-
-        // =========================================================================
-        // 🚨 AQUÍ PONDRÁS TUS LLAVES DE FIREBASE CUANDO LO SUBAS A GITHUB 🚨
-        // =========================================================================
-        let miConfiguracionFirebase = {};
-
-        if (typeof __firebase_config !== 'undefined') miConfiguracionFirebase = JSON.parse(__firebase_config);
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
-        const tieneCredenciales = Object.keys(miConfiguracionFirebase).length > 0;
-
-        let app, auth, db;
-        let conexionActiva = false;
-
-        if (tieneCredenciales) {
-            try {
-                app = initializeApp(miConfiguracionFirebase);
-                auth = getAuth(app);
-                db = getFirestore(app);
-                conexionActiva = true;
-            } catch (e) { console.error("Firebase Falló:", e); }
+            cargarConfigVisual(); // Cargar logo y texto local
+            
+            // Descargar datos la primera vez
+            await descargarDatos();
+            
+            // BUCLE MÁGICO: Descargar datos de internet cada 5 segundos para que sea "En Vivo"
+            setInterval(descargarDatos, 5000); 
         }
 
-        let chartTurnos = null, chartAreas = null, chartDist = null;
-        let encuestasGlobales = [];
-        const colores = { excelente: '#10b981', bueno: '#3b82f6', regular: '#f59e0b', malo: '#f97316', muy_malo: '#ef4444' };
+        // 2. LECTURA Y ESCRITURA EN INTERNET
+        async function descargarDatos() {
+            if(!CLOUD_ID) return;
+            try {
+                let res = await fetch(`${API_URL}/${CLOUD_ID}`);
+                dbEnNube = await res.json();
+                
+                // Actualizar UI
+                actualizarGraficas();
+                renderizarTareas();
+                
+                // Actualizar inputs de preguntas
+                if(dbEnNube.preguntas && dbEnNube.preguntas.length > 0) {
+                    document.getElementById("preg-1").value = dbEnNube.preguntas[0];
+                    document.getElementById("preg-2").value = dbEnNube.preguntas[1];
+                    document.getElementById("preg-3").value = dbEnNube.preguntas[2];
+                    document.getElementById("preg-4").value = dbEnNube.preguntas[3];
+                }
+            } catch(e) { console.log("Esperando conexión..."); }
+        }
 
+        async function subirDatos() {
+            if(!CLOUD_ID) return;
+            await fetch(`${API_URL}/${CLOUD_ID}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(dbEnNube)
+            });
+        }
+
+        // 3. NAVEGACIÓN Y CONFIGURACIÓN VISUAL
         window.cambiarVista = (idVista, btn) => {
-            document.querySelectorAll('.seccion-vista').forEach(v => { v.classList.remove('block'); v.classList.add('hidden'); });
-            document.getElementById(idVista).classList.remove('hidden'); document.getElementById(idVista).classList.add('block');
-            document.querySelectorAll('.nav-item').forEach(b => b.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item");
-            btn.className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md transition-all nav-item";
-            if(idVista === 'vista-dashboard') window.actualizarDashboard();
+            document.querySelectorAll('.seccion-vista').forEach(v => v.classList.add('hidden'));
+            document.getElementById(idVista).classList.remove('hidden');
+            document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('bg-blue-600', 'shadow-md'));
+            btn.classList.add('bg-blue-600', 'shadow-md');
         };
 
-        let toastTimeout;
-        window.mostrarNotificacion = (msg, tipo='exito') => {
+        window.mostrarNotificacion = (msg) => {
             const t = document.getElementById('toast-notificacion');
             document.getElementById('toast-message').textContent = msg;
-            document.getElementById('toast-icon').textContent = tipo==='exito'?'✅':'⚠️';
-            t.className = `fixed bottom-5 right-5 transform transition-all duration-300 px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 ${tipo==='exito'?'bg-slate-800':'bg-amber-600'} text-white`;
-            clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3500);
+            t.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3500);
         };
 
-        window.abrirModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
-        window.cerrarModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
-        window.abrirModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
-        window.cerrarModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
-        window.toggleFechasPDF = () => document.getElementById('contenedor-fechas').classList.toggle('hidden');
+        window.guardarConfiguracion = () => {
+            const n = document.getElementById("input-nombre-institucion").value;
+            const s = document.getElementById("input-sede").value;
+            const file = document.getElementById("input-logo").files[0];
 
-        // MODO HÍBRIDO: GUARDAR CONFIGURACIÓN
-        window.guardarConfiguracion = async () => {
-            const nombre = document.getElementById('input-nombre-institucion').value;
-            const sede = document.getElementById('input-sede').value;
-            const logoInp = document.getElementById('input-logo');
-            
-            document.getElementById('logo-texto').textContent = nombre;
-            document.getElementById('logo-sede').textContent = sede;
+            document.getElementById("logo-texto").textContent = n;
+            document.getElementById("logo-sede").textContent = s;
 
-            let data = { nombre, sede };
-            if (logoInp.files && logoInp.files[0]) {
+            let guardar = () => {
+                localStorage.setItem("univ_visual", JSON.stringify({ nombre: n, sede: s }));
+                mostrarNotificacion("✅ Identidad Actualizada");
+            };
+
+            if (file) {
                 const reader = new FileReader();
-                reader.onload = async (e) => {
-                    data.logo = e.target.result;
-                    document.getElementById('logo-imagen').src = data.logo;
-                    document.getElementById('logo-imagen').classList.remove('hidden');
-                    document.getElementById('icono-por-defecto').classList.add('hidden');
-                    
-                    if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
-                    else localStorage.setItem('configUniversidad', JSON.stringify(data)); // Fallback Local
+                reader.onload = (e) => {
+                    const b64 = e.target.result;
+                    document.getElementById("logo-imagen").src = b64;
+                    document.getElementById("logo-imagen").classList.remove("hidden");
+                    document.getElementById("icono-por-defecto").classList.add("hidden");
+                    localStorage.setItem("univ_logo", b64);
+                    guardar();
                 };
-                reader.readAsDataURL(logoInp.files[0]);
-            } else {
-                if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
-                else localStorage.setItem('configUniversidad', JSON.stringify(data)); // Fallback Local
-            }
-            window.mostrarNotificacion('Configuración visual actualizada');
+                reader.readAsDataURL(file);
+            } else { guardar(); }
         };
 
+        function cargarConfigVisual() {
+            const vis = JSON.parse(localStorage.getItem("univ_visual"));
+            const log = localStorage.getItem("univ_logo");
+            if(vis) {
+                document.getElementById("logo-texto").textContent = vis.nombre;
+                document.getElementById("logo-sede").textContent = vis.sede;
+            }
+            if(log) {
+                document.getElementById("logo-imagen").src = log;
+                document.getElementById("logo-imagen").classList.remove("hidden");
+                document.getElementById("icono-por-defecto").classList.add("hidden");
+            }
+        }
+
+        // 4. WORKFLOW Y PREGUNTAS (Escriben a la nube)
         window.guardarPreguntas = async () => {
-            const lista = [ document.getElementById('input-preg-1').value, document.getElementById('input-preg-2').value, document.getElementById('input-preg-3').value, document.getElementById('input-preg-4').value ];
-            if (conexionActiva && auth.currentUser) {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista });
-            } else {
-                localStorage.setItem('preguntasUniversidad', JSON.stringify({lista})); // Fallback Local
-            }
-            window.mostrarNotificacion('Preguntas Sincronizadas');
-        };
-
-        window.ejecutarLimpiezaDatos = async () => {
-            window.cerrarModalLimpiar();
-            if (conexionActiva && auth.currentUser) {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
-                snap.forEach(d => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', d.id)));
-            } else {
-                localStorage.removeItem('encuestasUniversidad'); // Fallback Local
-                encuestasGlobales = [];
-                window.actualizarDashboard();
-            }
-            window.mostrarNotificacion('Memoria borrada');
-        };
-
-        window.inyectarDatosPrueba = async () => {
-            window.mostrarNotificacion('Inyectando datos de prueba...');
-            let locales = [];
-            if(!conexionActiva) locales = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
-            
-            for(let i=0; i<15; i++){
-                let h = Math.floor(Math.random()*9)+8; 
-                let d = new Date(); d.setHours(h);
-                let datos = {
-                    pregunta_1: Math.floor(Math.random()*3)+3, pregunta_2: Math.max(1, Math.floor(Math.random()*4)+1),
-                    pregunta_3: Math.floor(Math.random()*2)+4, pregunta_4: Math.floor(Math.random()*3)+3, fecha: d.toISOString()
-                };
-                if (conexionActiva && auth.currentUser) await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), datos);
-                else locales.push(datos); // Fallback Local
-            }
-            
-            if(!conexionActiva) {
-                localStorage.setItem('encuestasUniversidad', JSON.stringify(locales));
-                encuestasGlobales = locales;
-                window.actualizarDashboard();
-            }
-        };
-
-        window.renderizarTareasLocal = () => {
-            const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
-            let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-            ts.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
-                let col = t.estado==='resuelto'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700';
-                tbody.innerHTML += `<tr class="border-b"><td class="p-4">${t.texto}</td><td class="p-4 text-slate-500">${t.responsable}</td><td class="p-4"><span class="px-2 py-1 rounded text-xs ${col}">${t.estado}</span></td><td class="p-4"><select onchange="cambiarEstadoTarea('${t.id}', this.value)" class="text-sm border p-1 rounded"><option value="pendiente" ${t.estado==='pendiente'?'selected':''}>Pendiente</option><option value="resuelto" ${t.estado==='resuelto'?'selected':''}>Resuelto</option></select> <button onclick="eliminarTarea('${t.id}')" class="text-red-500 ml-2">❌</button></td></tr>`;
-            });
+            dbEnNube.preguntas = [
+                document.getElementById("preg-1").value, document.getElementById("preg-2").value,
+                document.getElementById("preg-3").value, document.getElementById("preg-4").value
+            ];
+            await subirDatos();
+            mostrarNotificacion("☁️ Preguntas enviadas a los celulares");
         };
 
         window.agregarTarea = async () => {
-            const txt = document.getElementById('nueva-tarea-texto').value;
-            const resp = document.getElementById('nueva-tarea-responsable').value;
+            const txt = document.getElementById("input-tarea").value;
             if(!txt) return;
-            
-            if (conexionActiva && auth.currentUser) {
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
-            } else {
-                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-                ts.push({ id: 't_'+Date.now(), texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
-                localStorage.setItem('tareasUniversidad', JSON.stringify(ts));
-                window.renderizarTareasLocal();
-            }
-            document.getElementById('nueva-tarea-texto').value = '';
-            window.mostrarNotificacion('Tarea asignada');
+            if(!dbEnNube.tareas) dbEnNube.tareas = [];
+            dbEnNube.tareas.push({ id: Date.now(), texto: txt, estado: 'pendiente' });
+            document.getElementById("input-tarea").value = "";
+            renderizarTareas();
+            await subirDatos();
+            mostrarNotificacion("✅ Tarea asignada en la nube");
         };
 
-        window.cambiarEstadoTarea = async (id, estado) => {
-            if (conexionActiva && auth.currentUser) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id), { estado });
-            else {
-                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-                let i = ts.findIndex(t => t.id === id);
-                if(i > -1) { ts[i].estado = estado; localStorage.setItem('tareasUniversidad', JSON.stringify(ts)); window.renderizarTareasLocal(); }
-            }
+        window.cambiarEstadoTarea = async (id) => {
+            const t = dbEnNube.tareas.find(x => x.id == id);
+            if(t) { t.estado = t.estado === 'pendiente' ? 'resuelto' : 'pendiente'; renderizarTareas(); await subirDatos(); }
         };
-        
+
         window.eliminarTarea = async (id) => {
-            if (conexionActiva && auth.currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id));
-            else {
-                let ts = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-                ts = ts.filter(t => t.id !== id);
-                localStorage.setItem('tareasUniversidad', JSON.stringify(ts));
-                window.renderizarTareasLocal();
-            }
+            dbEnNube.tareas = dbEnNube.tareas.filter(x => x.id != id);
+            renderizarTareas(); await subirDatos();
         };
 
-        window.actualizarDashboard = () => {
+        function renderizarTareas() {
+            const tb = document.getElementById("lista-tareas"); tb.innerHTML = "";
+            (dbEnNube.tareas||[]).forEach(t => {
+                let color = t.estado === 'resuelto' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700';
+                tb.innerHTML += `<tr><td class="p-3">${t.texto}</td><td class="p-3"><span class="px-2 py-1 rounded text-xs cursor-pointer ${color}" onclick="cambiarEstadoTarea(${t.id})">${t.estado}</span></td><td class="p-3"><button onclick="eliminarTarea(${t.id})" class="text-red-500">❌</button></td></tr>`;
+            });
+        }
+
+        // 5. MOTOR ANALÍTICO (Lee de la nube)
+        window.actualizarGraficas = () => {
+            const encuestas = dbEnNube.encuestas || [];
             const vista = document.getElementById('filtroVista').value;
-            const total = encuestasGlobales.length;
+            const total = encuestas.length;
             document.getElementById('kpi-total').textContent = total;
             
-            if(total === 0) {
-                document.getElementById('kpi-promedio').textContent = '0.0';
-                if(chartTurnos) chartTurnos.destroy(); if(chartAreas) chartAreas.destroy(); if(chartDist) chartDist.destroy();
-                return;
-            }
+            if(total === 0) return document.getElementById('kpi-promedio').textContent = '0.0';
 
             let sum = { p1:0, p2:0, p3:0, p4:0, total:0 };
             let turnos = { man: {sum:0, cnt:0}, tar: {sum:0, cnt:0} };
             let dist = { 5:0, 4:0, 3:0, 2:0, 1:0 };
 
-            encuestasGlobales.forEach(e => {
-                sum.p1 += e.pregunta_1||0; sum.p2 += e.pregunta_2||0; sum.p3 += e.pregunta_3||0; sum.p4 += e.pregunta_4||0;
-                let val = vista === 'todas' ? ((e.pregunta_1||0)+(e.pregunta_2||0)+(e.pregunta_3||0)+(e.pregunta_4||0))/4 : (e[vista]||0);
+            encuestas.forEach(e => {
+                sum.p1 += e.p1||0; sum.p2 += e.p2||0; sum.p3 += e.p3||0; sum.p4 += e.p4||0;
+                let val = vista === 'todas' ? ((e.p1||0)+(e.p2||0)+(e.p3||0)+(e.p4||0))/4 : (e[vista.replace("pregunta_","p")]||0);
                 sum.total += val;
                 dist[Math.round(val)] = (dist[Math.round(val)]||0) + 1;
                 
@@ -494,106 +414,39 @@
             document.getElementById('kpi-promedio').textContent = prom;
             document.getElementById('kpi-sentimiento').textContent = prom >= 4 ? 'Positivo 😁' : prom < 3 ? 'Crítico 😠' : 'Neutral 😐';
 
-            // Graficas
+            // Pintar Graficas con Chart.js
             window.Chart.defaults.font.family = 'Inter';
-            if(chartTurnos) chartTurnos.destroy();
-            chartTurnos = new window.Chart(document.getElementById('graficaTurnos'), {
-                type: 'bar', data: { labels: ['Mañana (8am-1pm)', 'Tarde (1pm-5pm)'], datasets: [{ label: 'Promedio', data: [turnos.man.cnt?turnos.man.sum/turnos.man.cnt:0, turnos.tar.cnt?turnos.tar.sum/turnos.tar.cnt:0], backgroundColor: '#3b82f6' }] },
-                options: { scales: {y:{max:5, beginAtZero:true}} }
-            });
+            
+            if(charts.t) charts.t.destroy();
+            charts.t = new window.Chart(document.getElementById('graficaTurnos'), { type: 'bar', data: { labels: ['Mañana', 'Tarde'], datasets: [{ label: 'Promedio', data: [turnos.man.cnt?turnos.man.sum/turnos.man.cnt:0, turnos.tar.cnt?turnos.tar.sum/turnos.tar.cnt:0], backgroundColor: '#3b82f6' }] }, options: { scales: {y:{max:5, beginAtZero:true}} } });
 
-            if(chartAreas) chartAreas.destroy();
-            chartAreas = new window.Chart(document.getElementById('graficaAreas'), {
-                type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ data: [sum.p1/total, sum.p2/total, sum.p3/total, sum.p4/total], backgroundColor: ['#3b82f6','#f59e0b','#10b981','#8b5cf6'] }] },
-                options: { scales: {y:{max:5, beginAtZero:true}} }
-            });
+            if(charts.a) charts.a.destroy();
+            charts.a = new window.Chart(document.getElementById('graficaAreas'), { type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ label:'Nota', data: [sum.p1/total, sum.p2/total, sum.p3/total, sum.p4/total], backgroundColor: ['#3b82f6','#f59e0b','#10b981','#8b5cf6'] }] }, options: { scales: {y:{max:5, beginAtZero:true}} } });
 
-            if(chartDist) chartDist.destroy();
-            chartDist = new window.Chart(document.getElementById('graficaDistribucion'), {
-                type: 'doughnut', data: { labels: ['Exc','Bue','Reg','Mal','Muy'], datasets: [{ data:[dist[5],dist[4],dist[3],dist[2],dist[1]], backgroundColor:[colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo] }] }
-            });
-
-            // Sugerencias
-            const sugg = document.getElementById('lista-sugerencias');
-            if(sum.p2/total < 3.5) sugg.innerHTML = `<li class="p-3 bg-red-50 border-l-4 border-red-500 rounded">⚠️ Tiempos de espera críticos. Considere habilitar más ventanillas.</li>`;
-            else sugg.innerHTML = `<li class="p-3 bg-emerald-50 border-l-4 border-emerald-500 rounded">✅ Parámetros estables.</li>`;
+            if(charts.d) charts.d.destroy();
+            charts.d = new window.Chart(document.getElementById('graficaDistribucion'), { type: 'doughnut', data: { labels: ['Exc','Bue','Reg','Mal','Muy'], datasets: [{ data:[dist[5],dist[4],dist[3],dist[2],dist[1]], backgroundColor:['#10b981', '#3b82f6', '#f59e0b', '#f97316', '#ef4444'] }] } });
         };
 
-        window.generarReportePDF = () => {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            doc.text("Reporte UnivAdmin", 14, 20);
-            const filas = encuestasGlobales.map(e => [new Date(e.fecha).toLocaleDateString(), e.pregunta_1, e.pregunta_2, e.pregunta_3, e.pregunta_4]);
-            doc.autoTable({ head:[["Fecha", "P1(Pagos)", "P2(Espera)", "P3(Info)", "P4(Gral)"]], body: filas, startY: 30 });
-            doc.save("Reporte.pdf"); window.cerrarModalExportar();
-        };
-
-        async function arrancarAdmin() {
-            if (!conexionActiva) {
-                // FALLBACK: MODO LOCAL (No hay llaves de Firebase)
-                document.getElementById('estado-nube').textContent = "⚠️ MODO LOCAL (Firebase Inactivo)";
-                document.getElementById('estado-nube').classList.replace('text-slate-500', 'text-amber-600');
-                
-                // 1. Cargar Configuración Visual
-                let conf = JSON.parse(localStorage.getItem('configUniversidad')) || {};
-                if(conf.nombre) document.getElementById('logo-texto').textContent = conf.nombre;
-                if(conf.sede) document.getElementById('logo-sede').textContent = conf.sede;
-                if(conf.logo) { document.getElementById('logo-imagen').src = conf.logo; document.getElementById('logo-imagen').classList.remove('hidden'); document.getElementById('icono-por-defecto').classList.add('hidden'); }
-
-                // 2. Cargar Datos y Tareas
-                encuestasGlobales = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
-                window.actualizarDashboard();
-                window.renderizarTareasLocal();
-
-                // 3. Escuchar a la otra pestaña (Encuesta) en vivo
-                window.addEventListener('storage', (e) => {
-                    if (e.key === 'encuestasUniversidad') {
-                        let nuevas = JSON.parse(e.newValue) || [];
-                        if (nuevas.length > encuestasGlobales.length) window.mostrarNotificacion("¡Nueva encuesta recibida!");
-                        encuestasGlobales = nuevas;
-                        window.actualizarDashboard();
-                    }
-                });
-
-                return window.mostrarNotificacion("Modo Local Activo - Sin Nube");
+        window.inyectarDatosPrueba = async () => {
+            mostrarNotificacion("Generando datos...");
+            if(!dbEnNube.encuestas) dbEnNube.encuestas = [];
+            for(let i=0; i<15; i++){
+                let d = new Date(); d.setHours(Math.floor(Math.random()*9)+8);
+                dbEnNube.encuestas.push({ p1: Math.floor(Math.random()*3)+3, p2: Math.floor(Math.random()*4)+1, p3: Math.floor(Math.random()*2)+4, p4: Math.floor(Math.random()*3)+3, fecha: d.toISOString() });
             }
+            await subirDatos();
+            actualizarGraficas();
+        };
 
-            try {
-                if (typeof __initial_auth_token !== 'undefined') await signInWithCustomToken(auth, __initial_auth_token);
-                else await signInAnonymously(auth);
+        window.abrirModalLimpiar = async () => {
+            if(confirm("¿Borrar todo permanentemente?")) {
+                dbEnNube.encuestas = []; await subirDatos(); actualizarGraficas();
+                mostrarNotificacion("Base de datos limpia.");
+            }
+        };
 
-                // Escuchar Encuestas
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), (snap) => {
-                    let viejoTotal = encuestasGlobales.length;
-                    encuestasGlobales = [];
-                    snap.forEach(d => encuestasGlobales.push({id: d.id, ...d.data()}));
-                    if (encuestasGlobales.length > viejoTotal && viejoTotal > 0) window.mostrarNotificacion("¡Nueva encuesta recibida!");
-                    window.actualizarDashboard();
-                }, e => console.error(e));
-
-                // Escuchar Tareas
-                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), (snap) => {
-                    const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
-                    let ts = []; snap.forEach(d => ts.push({id: d.id, ...d.data()}));
-                    ts.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
-                        let col = t.estado==='resuelto'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700';
-                        tbody.innerHTML += `<tr class="border-b"><td class="p-4">${t.texto}</td><td class="p-4 text-slate-500">${t.responsable}</td><td class="p-4"><span class="px-2 py-1 rounded text-xs ${col}">${t.estado}</span></td><td class="p-4"><select onchange="cambiarEstadoTarea('${t.id}', this.value)" class="text-sm border p-1 rounded"><option value="pendiente" ${t.estado==='pendiente'?'selected':''}>Pendiente</option><option value="resuelto" ${t.estado==='resuelto'?'selected':''}>Resuelto</option></select> <button onclick="eliminarTarea('${t.id}')" class="text-red-500 ml-2">❌</button></td></tr>`;
-                    });
-                }, e => console.error(e));
-
-                // Escuchar Configs
-                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), (snap) => {
-                    if(snap.exists()) {
-                        const d = snap.data();
-                        if(d.nombre) document.getElementById('logo-texto').textContent = d.nombre;
-                        if(d.sede) document.getElementById('logo-sede').textContent = d.sede;
-                        if(d.logo) { document.getElementById('logo-imagen').src = d.logo; document.getElementById('logo-imagen').classList.remove('hidden'); document.getElementById('icono-por-defecto').classList.add('hidden'); }
-                    }
-                });
-
-            } catch(e) { console.error("Error Autenticación:", e); }
-        }
-
-        arrancarAdmin();
+        // Arrancar
+        arrancarSistema();
     </script>
 </body>
 </html>
