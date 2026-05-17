@@ -284,24 +284,24 @@
                     <div class="space-y-4">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 1 (Área Financiera)</label>
-                            <input type="text" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                            <input type="text" id="input-preg-1" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 2 (Área de Operaciones)</label>
-                            <input type="text" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                            <input type="text" id="input-preg-2" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 3 (Área de Comunicación)</label>
-                            <input type="text" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                            <input type="text" id="input-preg-3" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 4 (Satisfacción Global)</label>
-                            <input type="text" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
+                            <input type="text" id="input-preg-4" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
                         </div>
                     </div>
                     
                     <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarFalso('Preguntas actualizadas exitosamente')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
+                        <button onclick="guardarPreguntas()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
                             <span>🔄</span> Sincronizar Cambios
                         </button>
                     </div>
@@ -532,6 +532,19 @@
             } else {
                 mostrarNotificacion('Configuración guardada correctamente');
             }
+        }
+
+        // Nueva función para guardar preguntas personalizadas
+        function guardarPreguntas() {
+            const p1 = document.getElementById('input-preg-1').value;
+            const p2 = document.getElementById('input-preg-2').value;
+            const p3 = document.getElementById('input-preg-3').value;
+            const p4 = document.getElementById('input-preg-4').value;
+            
+            const nuevasPreguntas = [p1, p2, p3, p4];
+            localStorage.setItem('preguntasUniversidad', JSON.stringify(nuevasPreguntas));
+            
+            mostrarNotificacion('Preguntas sincronizadas con las encuestas');
         }
 
         // Sistema de Modales Personalizados (Reemplazo de confirm y prompt nativos)
@@ -926,6 +939,7 @@
             const nombreGuardado = localStorage.getItem('nombreInstitucion');
             const sedeGuardada = localStorage.getItem('sedeInstitucion');
             const logoGuardado = localStorage.getItem('logoInstitucion');
+            const preguntasGuardadas = JSON.parse(localStorage.getItem('preguntasUniversidad'));
 
             if (nombreGuardado) {
                 document.getElementById('logo-texto').textContent = nombreGuardado;
@@ -939,6 +953,14 @@
             }
             if (logoGuardado) {
                 actualizarLogoUI(logoGuardado);
+            }
+            
+            // Cargar preguntas guardadas en los inputs
+            if (preguntasGuardadas && preguntasGuardadas.length === 4) {
+                document.getElementById('input-preg-1').value = preguntasGuardadas[0];
+                document.getElementById('input-preg-2').value = preguntasGuardadas[1];
+                document.getElementById('input-preg-3').value = preguntasGuardadas[2];
+                document.getElementById('input-preg-4').value = preguntasGuardadas[3];
             }
             
             actualizarDashboard();
