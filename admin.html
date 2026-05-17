@@ -18,7 +18,6 @@
         ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
         ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
         
-        /* Estilos para los toggles (interruptores) */
         .toggle-checkbox:checked { right: 0; border-color: #3b82f6; }
         .toggle-checkbox:checked + .toggle-label { background-color: #3b82f6; }
         .toggle-checkbox { right: 0; z-index: 1; border-color: #e2e8f0; transition: all 0.3s; }
@@ -51,7 +50,7 @@
                 <span>🎨</span> Personalizar Encuesta
             </button>
             <button onclick="cambiarVista('vista-alertas', this)" class="w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item">
-                <span>🔔</span> Alertas y Notificaciones
+                <span>🔔</span> Alertas Operativas
             </button>
             <div class="pt-4 mt-2 border-t border-slate-800"></div>
             <button onclick="abrirModalExportar()" class="w-full text-left flex items-center gap-3 bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white px-4 py-3 rounded-xl border border-slate-600 transition-all cursor-pointer">
@@ -70,9 +69,6 @@
 
     <main class="flex-1 flex flex-col h-full overflow-y-auto relative bg-slate-50">
         
-        <!-- ========================================== -->
-        <!-- VISTA 1: DASHBOARD ANALÍTICO (ACTIVO POR DEFECTO) -->
-        <!-- ========================================== -->
         <div id="vista-dashboard" class="seccion-vista block">
             <header class="bg-white px-8 py-6 flex flex-col lg:flex-row justify-between items-start lg:items-center border-b border-slate-200 sticky top-0 z-10">
                 <div>
@@ -82,14 +78,14 @@
                           <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                           <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
                         </span>
-                        <p class="text-sm text-slate-500 font-medium">Sincronizado en Tiempo Real</p>
+                        <p class="text-sm text-slate-500 font-medium" id="estado-nube">Conectado a la Nube</p>
                     </div>
                 </div>
 
                 <div class="mt-4 lg:mt-0 flex items-center gap-3 bg-slate-100 p-2 rounded-xl border border-slate-200">
                     <label for="filtroVista" class="text-sm font-semibold text-slate-600 pl-2">Vista de Análisis:</label>
                     <select id="filtroVista" onchange="actualizarDashboard()" class="bg-white border-none text-sm font-bold text-slate-800 py-2 px-4 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 outline-none cursor-pointer">
-                        <option value="todas">🌐 Vista General (Todas las áreas)</option>
+                        <option value="todas">🌐 Vista General</option>
                         <option value="pregunta_1">💳 1. Pagos y Matrícula</option>
                         <option value="pregunta_2">⏱️ 2. Tiempos de Espera</option>
                         <option value="pregunta_3">ℹ️ 3. Claridad de Información</option>
@@ -105,7 +101,6 @@
                         <span class="text-4xl font-black text-slate-800" id="kpi-total">0</span>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-16 h-16 bg-blue-50 rounded-bl-full -z-0"></div>
                         <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2 relative z-10">Promedio Seleccionado</span>
                         <div class="flex items-end gap-2 relative z-10">
                             <span class="text-4xl font-black text-blue-600" id="kpi-promedio">0.0</span>
@@ -117,7 +112,7 @@
                         <span class="text-2xl font-bold text-slate-700 mt-2" id="kpi-sentimiento">-</span>
                     </div>
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 border-b-4 border-b-emerald-500 flex flex-col" id="kpi-card-critica">
-                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área de Mayor Riesgo</span>
+                        <span class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Área de Riesgo</span>
                         <span class="text-xl font-bold text-slate-800 mt-2 leading-tight" id="kpi-critica">-</span>
                     </div>
                 </section>
@@ -125,112 +120,75 @@
                 <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
                         <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-lg font-bold text-slate-800">Rendimiento por Turnos Horarios</h3>
-                            <span class="text-xs font-semibold bg-indigo-100 text-indigo-700 px-3 py-1 rounded-full" id="etiqueta-turno">Filtro Activo</span>
+                            <h3 class="text-lg font-bold text-slate-800">Rendimiento por Turnos (8am - 5pm)</h3>
                         </div>
-                        <div class="h-64 relative">
-                            <canvas id="graficaTurnos"></canvas>
-                        </div>
+                        <div class="h-64 relative"><canvas id="graficaTurnos"></canvas></div>
                     </div>
-
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
-                        <h3 class="text-lg font-bold text-slate-800 mb-6">Comparativa de Áreas (General)</h3>
-                        <div class="h-64 relative">
-                            <canvas id="graficaAreas"></canvas>
-                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 mb-6">Comparativa de Áreas</h3>
+                        <div class="h-64 relative"><canvas id="graficaAreas"></canvas></div>
                     </div>
                 </section>
 
                 <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-1">
                         <h3 class="text-lg font-bold text-slate-800 mb-2">Distribución de Sentimientos</h3>
-                        <p class="text-xs text-slate-500 mb-4">Porcentaje de calificaciones en el área seleccionada</p>
-                        <div class="h-56 relative flex justify-center">
-                            <canvas id="graficaDistribucion"></canvas>
-                        </div>
+                        <div class="h-56 relative flex justify-center"><canvas id="graficaDistribucion"></canvas></div>
                     </div>
-
                     <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 lg:col-span-2 flex flex-col">
-                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2">
-                            <span>🤖</span> Análisis Inteligente y Recomendaciones
-                        </h3>
+                        <h3 class="text-lg font-bold text-slate-800 mb-4 flex items-center gap-2"><span>🤖</span> Recomendaciones de IA</h3>
                         <div class="flex-1 bg-slate-50 rounded-xl p-4 border border-slate-100 overflow-y-auto">
-                            <ul id="lista-sugerencias" class="space-y-4">
-                                <!-- JS inyecta sugerencias aquí -->
-                            </ul>
+                            <ul id="lista-sugerencias" class="space-y-4"></ul>
                         </div>
                     </div>
                 </section>
 
-                <!-- NUEVA SECCIÓN: PLANES DE ACCIÓN (WORKFLOW) -->
                 <section class="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 mb-8">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
                         <div>
-                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
-                                <span>🛠️</span> Planes de Acción (Workflow Operativo)
-                            </h3>
-                            <p class="text-sm text-slate-500 mt-1">Cierra el ciclo: Convierte los hallazgos del dashboard en tareas asignadas.</p>
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2"><span>🛠️</span> Planes de Acción (Workflow)</h3>
+                            <p class="text-sm text-slate-500 mt-1">Asigna tareas basadas en los hallazgos gráficos.</p>
                         </div>
                     </div>
-                    
                     <div class="flex flex-col md:flex-row gap-3 mb-6 bg-slate-50 p-4 rounded-xl border border-slate-200">
-                        <input type="text" id="nueva-tarea-texto" placeholder="Ej: Capacitar al personal de caja en el turno de la tarde..." class="flex-1 bg-white border border-slate-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
-                        <select id="nueva-tarea-responsable" class="bg-white border border-slate-300 rounded-lg p-3 outline-none focus:ring-2 focus:ring-blue-500 transition-shadow">
+                        <input type="text" id="nueva-tarea-texto" placeholder="Ej: Capacitar personal..." class="flex-1 bg-white border border-slate-300 rounded-lg p-3 outline-none">
+                        <select id="nueva-tarea-responsable" class="bg-white border border-slate-300 rounded-lg p-3 outline-none">
                             <option value="Supervisor de Admisión">Supervisor de Admisión</option>
                             <option value="Soporte TI">Soporte TI</option>
-                            <option value="Recursos Humanos">Recursos Humanos</option>
                             <option value="Director Académico">Director Académico</option>
-                            <option value="Mantenimiento">Mantenimiento</option>
                         </select>
-                        <button onclick="agregarTarea()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition shadow-sm flex items-center gap-2">
-                            <span>+</span> Asignar
-                        </button>
+                        <button onclick="agregarTarea()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition">Asignar</button>
                     </div>
-
                     <div class="overflow-x-auto rounded-xl border border-slate-200">
                         <table class="w-full text-left text-sm text-slate-600">
                             <thead class="bg-slate-100 text-slate-600 font-semibold uppercase text-xs">
-                                <tr>
-                                    <th class="p-4">Acción a Tomar</th>
-                                    <th class="p-4">Responsable</th>
-                                    <th class="p-4">Estado Actual</th>
-                                    <th class="p-4">Actualizar</th>
-                                </tr>
+                                <tr><th class="p-4">Acción</th><th class="p-4">Responsable</th><th class="p-4">Estado</th><th class="p-4">Gestión</th></tr>
                             </thead>
-                            <tbody id="lista-tareas" class="divide-y divide-slate-200 bg-white">
-                                <!-- Las tareas se inyectan mediante JS -->
-                            </tbody>
+                            <tbody id="lista-tareas" class="divide-y divide-slate-200 bg-white"></tbody>
                         </table>
                     </div>
                 </section>
-
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VISTA 2: CONFIGURACIÓN GENERAL -->
-        <!-- ========================================== -->
         <div id="vista-configuracion" class="seccion-vista hidden">
             <header class="bg-white px-8 py-6 border-b border-slate-200">
                 <h1 class="text-2xl font-bold text-slate-900">Configuración General</h1>
-                <p class="text-sm text-slate-500 mt-1">Gestiona la identidad visual y detalles del recinto para los reportes.</p>
+                <p class="text-sm text-slate-500 mt-1">Gestiona la identidad visual para los reportes.</p>
             </header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
-                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors cursor-pointer">
-                                <option value="UnivAdmin">UnivAdmin (Predeterminado)</option>
+                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-3 outline-none">
                                 <option value="Universidad Martin Lutero">Universidad Martin Lutero</option>
+                                <option value="UnivAdmin Global">UnivAdmin Global</option>
                             </select>
                         </div>
-                        
                         <div>
                             <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
-                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors cursor-pointer">
-                                <option value="Centro de Inteligencia">Centro de Inteligencia (Sede Global)</option>
+                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-3 outline-none">
                                 <option value="Central - Managua">Central - Managua</option>
                                 <option value="Masaya">Masaya</option>
                                 <option value="Ocotal">Ocotal</option>
@@ -246,19 +204,12 @@
                             </select>
                         </div>
                     </div>
-
                     <div>
                         <label class="block text-sm font-bold text-slate-700 mb-2">Logotipo de la Institución</label>
-                        <div class="flex items-center gap-4">
-                            <div class="flex-1">
-                                <input type="file" id="input-logo" accept=".jpg, .jpeg, .png, .svg" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
-                                <p class="mt-2 text-xs text-slate-500">Formatos recomendados: JPG, PNG o SVG. Se mostrará en la esquina superior izquierda.</p>
-                            </div>
-                        </div>
+                        <input type="file" id="input-logo" accept=".jpg, .jpeg, .png, .svg" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
                     </div>
-
                     <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
+                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm transition-all flex items-center gap-2">
                             <span>💾</span> Guardar Cambios
                         </button>
                     </div>
@@ -266,166 +217,75 @@
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VISTA 3: PERSONALIZAR ENCUESTA -->
-        <!-- ========================================== -->
         <div id="vista-personalizar" class="seccion-vista hidden">
             <header class="bg-white px-8 py-6 border-b border-slate-200">
                 <h1 class="text-2xl font-bold text-slate-900">Personalizar Encuesta</h1>
-                <p class="text-sm text-slate-500 mt-1">Modifica las preguntas que verán los estudiantes en las pantallas interactivas.</p>
             </header>
             <div class="p-8 max-w-4xl">
-                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    <div class="p-4 bg-blue-50 text-blue-800 rounded-xl text-sm mb-6 flex gap-3 border border-blue-100">
-                        <span>💡</span>
-                        <p>Los cambios realizados aquí se sincronizarán inmediatamente con todos los tótems y enlaces web de la encuesta.</p>
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-4">
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 1</label>
+                        <input type="text" id="input-preg-1" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
                     </div>
-
-                    <div class="space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 1 (Área Financiera)</label>
-                            <input type="text" id="input-preg-1" value="¿Cómo califica la atención recibida durante su proceso de pago/matrícula?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 2 (Área de Operaciones)</label>
-                            <input type="text" id="input-preg-2" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 3 (Área de Comunicación)</label>
-                            <input type="text" id="input-preg-3" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 4 (Satisfacción Global)</label>
-                            <input type="text" id="input-preg-4" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors">
-                        </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 2</label>
+                        <input type="text" id="input-preg-2" value="¿Cómo evalúa el tiempo de espera para ser atendido en ventanilla?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
                     </div>
-                    
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 3</label>
+                        <input type="text" id="input-preg-3" value="¿Cómo califica la claridad de la información brindada por el personal?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Pregunta 4</label>
+                        <input type="text" id="input-preg-4" value="En general, ¿Cómo califica la calidad del servicio administrativo de la universidad hoy?" class="w-full bg-slate-50 border border-slate-300 rounded-lg p-3 outline-none">
+                    </div>
                     <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarPreguntas()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
-                            <span>🔄</span> Sincronizar Cambios
-                        </button>
+                        <button onclick="guardarPreguntas()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg transition-all">🔄 Sincronizar Cambios</button>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- VISTA 4: ALERTAS Y NOTIFICACIONES -->
-        <!-- ========================================== -->
         <div id="vista-alertas" class="seccion-vista hidden">
-            <header class="bg-white px-8 py-6 border-b border-slate-200">
-                <h1 class="text-2xl font-bold text-slate-900">Alertas y Notificaciones</h1>
-                <p class="text-sm text-slate-500 mt-1">Configura cuándo y cómo deseas ser notificado sobre el rendimiento.</p>
-            </header>
+            <header class="bg-white px-8 py-6 border-b border-slate-200"><h1 class="text-2xl font-bold text-slate-900">Alertas Operativas</h1></header>
             <div class="p-8 max-w-4xl">
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
-                    
-                    <!-- Toggle 1 -->
-                    <div class="flex items-center justify-between py-3 border-b border-slate-100">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800">Alertas Críticas Inmediatas</h3>
-                            <p class="text-sm text-slate-500">Enviar email si se reciben 3 calificaciones "Muy Malas" consecutivas.</p>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggle" id="toggle1" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="toggle1" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
-                    <!-- Toggle 2 -->
-                    <div class="flex items-center justify-between py-3 border-b border-slate-100">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800">Resumen Diario Automático</h3>
-                            <p class="text-sm text-slate-500">Recibir un PDF al cierre de la jornada (18:00h) con los resultados del día.</p>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggle" id="toggle2" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="toggle2" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
-                    <!-- Toggle 3 -->
-                    <div class="flex items-center justify-between py-3">
-                        <div>
-                            <h3 class="text-base font-bold text-slate-800">Notificación de Tendencias</h3>
-                            <p class="text-sm text-slate-500">Avisar si el promedio general cae por debajo de 3.5 durante la semana.</p>
-                        </div>
-                        <div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
-                            <input type="checkbox" name="toggle" id="toggle3" checked class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
-                            <label for="toggle3" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
-                        </div>
-                    </div>
-
-                    <div class="pt-6 border-t border-slate-100 flex justify-end">
-                        <button onclick="guardarFalso('Preferencias de notificaciones guardadas')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all">
-                            Guardar Preferencias
-                        </button>
-                    </div>
+                    <p class="text-slate-500">Esta sección controlará los correos automáticos (Próximamente).</p>
                 </div>
             </div>
         </div>
-
     </main>
 
-    <!-- Modal Exportar PDF -->
-    <div id="modal-exportar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6 transform scale-95 transition-transform duration-300" id="modal-exportar-content">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-xl font-bold text-slate-800">Generar Reporte PDF</h3>
-                <button onclick="cerrarModalExportar()" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
+    <div id="modal-exportar" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-6">
+            <h3 class="text-xl font-bold text-slate-800 mb-4">Exportar PDF</h3>
+            <select id="exportar-rango" class="w-full border-slate-300 rounded-lg p-2.5 bg-slate-50 border outline-none mb-4" onchange="toggleFechasPDF()">
+                <option value="total">Historial Completo</option>
+                <option value="fechas">Por Fechas</option>
+            </select>
+            <div id="contenedor-fechas" class="hidden grid-cols-2 gap-4 mb-4">
+                <input type="date" id="fecha-inicio" class="w-full border-slate-300 rounded-lg p-2 bg-slate-50 border">
+                <input type="date" id="fecha-fin" class="w-full border-slate-300 rounded-lg p-2 bg-slate-50 border">
             </div>
-            
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm font-medium text-slate-700 mb-1">Rango de Datos</label>
-                    <select id="exportar-rango" class="w-full border-slate-300 rounded-lg shadow-sm p-2.5 bg-slate-50 border focus:ring-blue-500 focus:border-blue-500 outline-none" onchange="toggleFechasPDF()">
-                        <option value="total">Historial Completo</option>
-                        <option value="fechas">Por Rango de Fechas</option>
-                    </select>
-                </div>
-
-                <div id="contenedor-fechas" class="hidden grid-cols-2 gap-4">
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Desde</label>
-                        <input type="date" id="fecha-inicio" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-slate-700 mb-1">Hasta</label>
-                        <input type="date" id="fecha-fin" class="w-full border-slate-300 rounded-lg shadow-sm p-2 bg-slate-50 border outline-none">
-                    </div>
-                </div>
-            </div>
-
-            <div class="mt-6 flex justify-end gap-3">
-                <button onclick="cerrarModalExportar()" class="px-4 py-2 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
-                <button onclick="generarReportePDF()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium shadow-sm transition-colors flex items-center gap-2">
-                    <span>📥</span> Descargar
-                </button>
+            <div class="flex justify-end gap-3">
+                <button onclick="cerrarModalExportar()" class="px-4 py-2 bg-slate-100 rounded-lg">Cancelar</button>
+                <button onclick="generarReportePDF()" class="px-4 py-2 bg-blue-600 text-white rounded-lg">Descargar</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Confirmar Limpieza -->
-    <div id="modal-limpiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity duration-300">
-        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 transform scale-95 transition-transform duration-300 text-center" id="modal-limpiar-content">
-            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
-                <span class="text-2xl">⚠️</span>
-            </div>
+    <div id="modal-limpiar" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex justify-center items-center opacity-0 transition-opacity text-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6">
             <h3 class="text-lg font-bold text-slate-900 mb-2">¿Borrar todos los datos?</h3>
-            <p class="text-sm text-slate-500 mb-6">Esta acción no se puede deshacer. Todo el historial de encuestas será eliminado permanentemente.</p>
-            <div class="flex justify-center gap-3">
-                <button onclick="cerrarModalLimpiar()" class="px-4 py-2 w-full text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors">Cancelar</button>
-                <button onclick="ejecutarLimpiezaDatos()" class="px-4 py-2 w-full bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium shadow-sm transition-colors">Sí, borrar</button>
+            <div class="flex justify-center gap-3 mt-6">
+                <button onclick="cerrarModalLimpiar()" class="px-4 py-2 w-full bg-slate-100 rounded-lg">Cancelar</button>
+                <button onclick="ejecutarLimpiezaDatos()" class="px-4 py-2 w-full bg-red-600 text-white rounded-lg">Borrar</button>
             </div>
         </div>
     </div>
 
-    <!-- Toast Notification -->
-    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 pointer-events-none">
-        <span id="toast-icon">✅</span>
-        <span id="toast-message" class="text-sm font-medium">Operación exitosa</span>
+    <div id="toast-notificacion" class="fixed bottom-5 right-5 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3">
+        <span id="toast-icon">✅</span><span id="toast-message" class="text-sm font-medium">Operación exitosa</span>
     </div>
 
     <script type="module">
@@ -433,307 +293,233 @@
         import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // CONFIGURACIÓN DE LA NUBE (Igual que en la encuesta)
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
-        
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
+        // =========================================================================
+        // 🚨 AQUÍ PONDRÁS TUS LLAVES DE FIREBASE CUANDO LO SUBAS A GITHUB 🚨
+        // =========================================================================
+        let miConfiguracionFirebase = {
+            // apiKey: "TU_API_KEY",
+            // projectId: "TU_PROYECTO"
+        };
 
-        // Variables globales para gráficas y datos
-        let chartTurnos = null; let chartAreas = null; let chartDist = null;
+        if (typeof __firebase_config !== 'undefined') miConfiguracionFirebase = JSON.parse(__firebase_config);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
+        const tieneCredenciales = Object.keys(miConfiguracionFirebase).length > 0;
+
+        let app, auth, db;
+        let conexionActiva = false;
+
+        // Inicialización Blindada
+        if (tieneCredenciales) {
+            try {
+                app = initializeApp(miConfiguracionFirebase);
+                auth = getAuth(app);
+                db = getFirestore(app);
+                conexionActiva = true;
+            } catch (e) { console.error("Firebase Falló:", e); }
+        }
+
+        let chartTurnos = null, chartAreas = null, chartDist = null;
         let encuestasGlobales = [];
         const colores = { excelente: '#10b981', bueno: '#3b82f6', regular: '#f59e0b', malo: '#f97316', muy_malo: '#ef4444' };
 
-        window.cambiarVista = function(idVista, botonClickeado) {
-            document.querySelectorAll('.seccion-vista').forEach(vista => { vista.classList.remove('block'); vista.classList.add('hidden'); });
+        window.cambiarVista = (idVista, btn) => {
+            document.querySelectorAll('.seccion-vista').forEach(v => { v.classList.remove('block'); v.classList.add('hidden'); });
             document.getElementById(idVista).classList.remove('hidden'); document.getElementById(idVista).classList.add('block');
-            document.querySelectorAll('.nav-item').forEach(btn => btn.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item");
-            botonClickeado.className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item";
+            document.querySelectorAll('.nav-item').forEach(b => b.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item");
+            btn.className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md transition-all nav-item";
             if(idVista === 'vista-dashboard') window.actualizarDashboard();
-        }
+        };
 
         let toastTimeout;
-        window.mostrarNotificacion = function(mensaje, tipo = 'exito') {
-            const toast = document.getElementById('toast-notificacion');
-            document.getElementById('toast-message').textContent = mensaje;
-            const icon = document.getElementById('toast-icon');
-            if (tipo === 'exito') { icon.textContent = '✅'; toast.classList.replace('bg-red-600', 'bg-slate-800'); } 
-            else { icon.textContent = '❌'; toast.classList.replace('bg-slate-800', 'bg-red-600'); }
-            toast.classList.remove('translate-y-20', 'opacity-0');
+        window.mostrarNotificacion = (msg, tipo='exito') => {
+            const t = document.getElementById('toast-notificacion');
+            document.getElementById('toast-message').textContent = msg;
+            document.getElementById('toast-icon').textContent = tipo==='exito'?'✅':'⚠️';
+            t.className = `fixed bottom-5 right-5 transform transition-all duration-300 px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 ${tipo==='exito'?'bg-slate-800':'bg-amber-600'} text-white`;
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
-        }
+            toastTimeout = setTimeout(() => t.classList.add('translate-y-20', 'opacity-0'), 3500);
+        };
 
-        window.guardarFalso = (msg) => window.mostrarNotificacion(msg);
-        
-        window.actualizarLogoUI = function(logoDataUrl) {
-            const imgLogo = document.getElementById('logo-imagen');
-            const iconoDefecto = document.getElementById('icono-por-defecto');
-            if (logoDataUrl) { imgLogo.src = logoDataUrl; imgLogo.classList.remove('hidden'); iconoDefecto.classList.add('hidden'); } 
-            else { imgLogo.classList.add('hidden'); iconoDefecto.classList.remove('hidden'); }
-        }
-
-        window.guardarConfiguracion = async function() {
-            if(!auth.currentUser) return;
-            const nuevoNombre = document.getElementById('input-nombre-institucion').value;
-            const nuevaSede = document.getElementById('input-sede').value;
-            const inputLogo = document.getElementById('input-logo');
-            
-            let dataAguardar = { nombre: nuevoNombre, sede: nuevaSede };
-
-            const guardarEnBD = async (data) => {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
-                window.mostrarNotificacion('Configuración guardada en la nube');
-            };
-
-            if (inputLogo.files && inputLogo.files[0]) {
-                const lector = new FileReader();
-                lector.onload = function(e) {
-                    dataAguardar.logo = e.target.result; // Base64
-                    guardarEnBD(dataAguardar);
-                };
-                lector.readAsDataURL(inputLogo.files[0]);
-            } else {
-                guardarEnBD(dataAguardar);
-            }
-        }
-
-        window.guardarPreguntas = async function() {
-            if(!auth.currentUser) return;
-            const preguntas = [
-                document.getElementById('input-preg-1').value, document.getElementById('input-preg-2').value,
-                document.getElementById('input-preg-3').value, document.getElementById('input-preg-4').value
-            ];
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista: preguntas });
-            window.mostrarNotificacion('Preguntas sincronizadas con todas las pantallas');
-        }
-
-        window.abrirModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
-        window.cerrarModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
         window.abrirModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
         window.cerrarModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
-        window.toggleFechasPDF = () => {
-            const r = document.getElementById('exportar-rango').value; const c = document.getElementById('contenedor-fechas');
-            if(r === 'fechas'){ c.classList.remove('hidden'); c.classList.add('grid'); } else { c.classList.add('hidden'); c.classList.remove('grid'); }
-        }
+        window.abrirModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
+        window.cerrarModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
+        window.toggleFechasPDF = () => document.getElementById('contenedor-fechas').classList.toggle('hidden');
 
-        window.ejecutarLimpiezaDatos = async function() {
-            if(!auth.currentUser) return;
+        window.guardarConfiguracion = async () => {
+            const nombre = document.getElementById('input-nombre-institucion').value;
+            const sede = document.getElementById('input-sede').value;
+            const logoInp = document.getElementById('input-logo');
+            
+            document.getElementById('logo-texto').textContent = nombre;
+            document.getElementById('logo-sede').textContent = sede;
+
+            let data = { nombre, sede };
+            if (logoInp.files && logoInp.files[0]) {
+                const reader = new FileReader();
+                reader.onload = async (e) => {
+                    data.logo = e.target.result;
+                    document.getElementById('logo-imagen').src = data.logo;
+                    document.getElementById('logo-imagen').classList.remove('hidden');
+                    document.getElementById('icono-por-defecto').classList.add('hidden');
+                    if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
+                };
+                reader.readAsDataURL(logoInp.files[0]);
+            } else {
+                if (conexionActiva && auth.currentUser) await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
+            }
+            window.mostrarNotificacion('Configuración visual actualizada');
+        };
+
+        window.guardarPreguntas = async () => {
+            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
+            const lista = [ document.getElementById('input-preg-1').value, document.getElementById('input-preg-2').value, document.getElementById('input-preg-3').value, document.getElementById('input-preg-4').value ];
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista });
+            window.mostrarNotificacion('Preguntas Sincronizadas');
+        };
+
+        window.ejecutarLimpiezaDatos = async () => {
+            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
             window.cerrarModalLimpiar();
-            try {
-                // Borrar todos los documentos uno por uno
-                const querySnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
-                querySnap.forEach((docSnap) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', docSnap.id)));
-                window.mostrarNotificacion('Memoria de la nube borrada');
-            } catch(e) { window.mostrarNotificacion('Error al limpiar', 'error'); }
-        }
+            const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
+            snap.forEach(d => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', d.id)));
+            window.mostrarNotificacion('Memoria borrada de la nube');
+        };
 
-        window.generarReportePDF = function() {
-            const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
-            let datos = [...encuestasGlobales];
-            const rango = document.getElementById('exportar-rango').value;
-
-            if (rango === 'fechas') {
-                const fIni = document.getElementById('fecha-inicio').value; const fFin = document.getElementById('fecha-fin').value;
-                if (!fIni || !fFin) { window.mostrarNotificacion('Selecciona ambas fechas', 'error'); return; }
-                const inicio = new Date(fIni); inicio.setHours(0,0,0,0); const fin = new Date(fFin); fin.setHours(23,59,59,999);
-                datos = datos.filter(e => { const d = new Date(e.fecha); return d >= inicio && d <= fin; });
-            }
-
-            if (datos.length === 0) { window.mostrarNotificacion('No hay datos en ese rango', 'error'); return; }
-            docPdf.setFontSize(16); docPdf.text("Reporte de Satisfacción", 14, 20);
-            docPdf.setFontSize(10); docPdf.text(`Total: ${datos.length} | Generado: ${new Date().toLocaleDateString()}`, 14, 28);
-
-            const filas = datos.map(e => {
-                const d = new Date(e.fecha);
-                const p1=e.pregunta_1||0, p2=e.pregunta_2||0, p3=e.pregunta_3||0, p4=e.pregunta_4||0;
-                return [d.toLocaleDateString(), d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p1, p2, p3, p4, ((p1+p2+p3+p4)/4).toFixed(2)];
-            });
-            docPdf.autoTable({ head: [["Fecha", "Hora", "P1", "P2", "P3", "P4", "Prom"]], body: filas, startY: 35 });
-            docPdf.save(`Reporte_${Date.now()}.pdf`); window.cerrarModalExportar(); window.mostrarNotificacion('PDF Generado');
-        }
-
-        window.actualizarDashboard = function() {
-            const filtroActual = document.getElementById('filtroVista').value;
-            procesarYRenderizar(encuestasGlobales, filtroActual);
-        }
-
-        function procesarYRenderizar(datos, vista) {
-            const total = datos.length;
-            document.getElementById('kpi-total').textContent = total;
-            if (total === 0) { renderizarVacio(); return; }
-
-            let sumas = { p1: 0, p2: 0, p3: 0, p4: 0, totalGlobal: 0 };
-            let turnos = { mañana: { suma: 0, count: 0 }, tarde: { suma: 0, count: 0 } };
-            let distribucion = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
-
-            datos.forEach(enc => {
-                sumas.p1 += enc.pregunta_1||0; sumas.p2 += enc.pregunta_2||0; sumas.p3 += enc.pregunta_3||0; sumas.p4 += enc.pregunta_4||0;
-                let val = vista === 'todas' ? ((enc.pregunta_1||0)+(enc.pregunta_2||0)+(enc.pregunta_3||0)+(enc.pregunta_4||0))/4 : (enc[vista]||0);
-                sumas.totalGlobal += val;
-                distribucion[Math.round(val)] = (distribucion[Math.round(val)] || 0) + 1;
-
-                if(enc.fecha) {
-                    const hora = new Date(enc.fecha).getHours();
-                    if (hora >= 8 && hora < 13) { turnos.mañana.suma += val; turnos.mañana.count++; }
-                    else if (hora >= 13 && hora < 17) { turnos.tarde.suma += val; turnos.tarde.count++; }
-                }
-            });
-
-            const promAreas = { p1: (sumas.p1/total).toFixed(2), p2: (sumas.p2/total).toFixed(2), p3: (sumas.p3/total).toFixed(2), p4: (sumas.p4/total).toFixed(2) };
-            const promSel = (sumas.totalGlobal / total).toFixed(2);
-            const promTurnos = { mañ: turnos.mañana.count>0 ? (turnos.mañana.suma/turnos.mañana.count).toFixed(2) : 0, tar: turnos.tarde.count>0 ? (turnos.tarde.suma/turnos.tarde.count).toFixed(2) : 0 };
-
-            document.getElementById('kpi-promedio').textContent = promSel;
-            let sent = "Neutral 😐", col = "text-amber-500";
-            if(promSel >= 4.2) { sent = "Excelente 😁"; col = "text-emerald-500"; } else if(promSel < 3.0) { sent = "Crítico 😠"; col = "text-red-500"; }
-            document.getElementById('kpi-sentimiento').textContent = sent; document.getElementById('kpi-sentimiento').className = `text-2xl font-bold mt-2 ${col}`;
-
-            let menores = [ {n: "Pagos/Matrícula", v: parseFloat(promAreas.p1)}, {n: "Espera", v: parseFloat(promAreas.p2)}, {n: "Información", v: parseFloat(promAreas.p3)} ];
-            menores.sort((a,b)=>a.v-b.v);
-            const crit = document.getElementById('kpi-critica'), cCard = document.getElementById('kpi-card-critica');
-            if(menores[0].v <= 3.5) { crit.textContent = `${menores[0].n} (${menores[0].v})`; crit.className = 'text-xl font-bold text-red-600 mt-2'; cCard.classList.replace('border-b-emerald-500','border-b-red-500'); }
-            else { crit.textContent = "Todo en orden ✨"; crit.className = 'text-xl font-bold text-emerald-600 mt-2'; cCard.classList.replace('border-b-red-500','border-b-emerald-500'); }
-
-            document.getElementById('etiqueta-turno').textContent = vista==='todas' ? 'Promedio Global' : 'Área Específica';
-            renderizarGraficas(promTurnos, promAreas, distribucion, vista);
-            generarSugerenciasDinamicas(vista, promSel, promTurnos, promAreas);
-        }
-
-        function renderizarGraficas(t, a, d, v) {
-            window.Chart.defaults.font.family = 'Inter'; window.Chart.defaults.color = '#64748b';
-            if(chartTurnos) chartTurnos.destroy();
-            chartTurnos = new window.Chart(document.getElementById('graficaTurnos'), { type: 'line', data: { labels: ['Mañana (8-1pm)', 'Tarde (1-5pm)'], datasets: [{ data: [t.mañ, t.tar], borderColor: t.tar<3.0?'#ef4444':'#6366f1', fill: false, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: {y:{max:5, beginAtZero:true}} } });
-            
-            if(chartAreas) chartAreas.destroy();
-            const col = [v==='pregunta_1'||v==='todas'?'#3b82f6':'#e2e8f0', v==='pregunta_2'||v==='todas'?'#f59e0b':'#e2e8f0', v==='pregunta_3'||v==='todas'?'#10b981':'#e2e8f0', v==='pregunta_4'||v==='todas'?'#8b5cf6':'#e2e8f0'];
-            chartAreas = new window.Chart(document.getElementById('graficaAreas'), { type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ data: [a.p1, a.p2, a.p3, a.p4], backgroundColor: col }] }, options: { responsive: true, maintainAspectRatio: false, scales: {y:{max:5, beginAtZero:true}} } });
-            
-            if(chartDist) chartDist.destroy();
-            chartDist = new window.Chart(document.getElementById('graficaDistribucion'), { type: 'doughnut', data: { labels: ['Exc(5)', 'Bue(4)', 'Reg(3)', 'Mal(2)', 'Muy(1)'], datasets: [{ data: [d[5],d[4],d[3],d[2],d[1]], backgroundColor: [colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%' } });
-        }
-
-        function generarSugerenciasDinamicas(vista, promedio, turnos, areas) {
-            let html = '';
-            const cA = (tit, txt, tip) => {
-                const c = {critico:'bg-red-50 border-red-500 text-red-900', bueno:'bg-emerald-50 border-emerald-500 text-emerald-900', info:'bg-blue-50 border-blue-500 text-blue-900'};
-                return `<li class="p-4 rounded-r-xl border-l-4 ${c[tip]} text-sm mb-2 shadow-sm"><strong class="block text-base">${tit}</strong><p>${txt}</p></li>`;
-            };
-            if(parseFloat(turnos.tar) < parseFloat(turnos.mañ) - 0.5 && turnos.tar > 0) html += cA('⚠️ Fatiga Tarde', `Calidad cae a ${turnos.tar} en la tarde. Rotar personal.`, 'critico');
-            if(vista === 'todas') {
-                if(promedio >= 4) html += cA('🌟 Excelente', 'Estándares altos hoy.', 'bueno'); else if (promedio < 3.5) html += cA('🚨 Alerta', 'Promedio deficiente. Asigna tareas.', 'critico');
-            }
-            if(!html) html = cA('ℹ️ Estable', 'Operando normal.', 'info');
-            document.getElementById('lista-sugerencias').innerHTML = html;
-        }
-
-        function renderizarVacio() {
-            document.getElementById('kpi-promedio').textContent = '0.0'; document.getElementById('kpi-sentimiento').textContent = 'Sin Datos';
-            document.getElementById('lista-sugerencias').innerHTML = '<li class="p-4 bg-slate-100 text-slate-500">Sin datos. Inyecta datos de prueba.</li>';
-            if(chartTurnos) chartTurnos.destroy(); if(chartAreas) chartAreas.destroy(); if(chartDist) chartDist.destroy();
-        }
-
-        function renderizarTareasData(tareas) {
-            const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
-            if(tareas.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-500">No hay planes activos.</td></tr>'; return; }
-            
-            tareas.forEach(tarea => {
-                let col = 'bg-amber-100 text-amber-700', txt = 'Pendiente ⏳';
-                if(tarea.estado === 'en_proceso') { col = 'bg-blue-100 text-blue-700'; txt = 'En Proceso 🔄'; }
-                else if(tarea.estado === 'resuelto') { col = 'bg-emerald-100 text-emerald-700'; txt = 'Resuelto ✅'; }
-                
-                tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 border-b border-slate-100">
-                        <td class="p-4 font-medium">${tarea.texto}</td><td class="p-4 text-slate-500">${tarea.responsable}</td>
-                        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${col}">${txt}</span></td>
-                        <td class="p-4 flex gap-2">
-                            <select onchange="cambiarEstadoTarea('${tarea.id}', this.value)" class="text-sm border p-1 rounded">
-                                <option value="pendiente" ${tarea.estado==='pendiente'?'selected':''}>Pendiente</option>
-                                <option value="en_proceso" ${tarea.estado==='en_proceso'?'selected':''}>Proceso</option>
-                                <option value="resuelto" ${tarea.estado==='resuelto'?'selected':''}>Resuelto</option>
-                            </select>
-                            <button onclick="eliminarTarea('${tarea.id}')" class="text-red-400 hover:text-red-600">❌</button>
-                        </td>
-                    </tr>`;
-            });
-        }
-
-        window.agregarTarea = async function() {
-            if(!auth.currentUser) return;
-            const t = document.getElementById('nueva-tarea-texto').value; const r = document.getElementById('nueva-tarea-responsable').value;
-            if(!t) return window.mostrarNotificacion('Escribe una acción', 'error');
-            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: t, responsable: r, estado: 'pendiente', timestamp: Date.now() });
-            document.getElementById('nueva-tarea-texto').value = ''; window.mostrarNotificacion('Tarea Asignada');
-        }
-
-        window.cambiarEstadoTarea = async function(id, estado) {
-            if(!auth.currentUser) return;
-            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id), { estado: estado });
-        }
-
-        window.eliminarTarea = async function(id) {
-            if(!auth.currentUser) return;
-            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id));
-        }
-
-        window.inyectarDatosPrueba = async function() {
-            if(!auth.currentUser) return;
-            window.mostrarNotificacion('Inyectando datos en la nube...', 'info');
-            for(let i=0; i<20; i++){
-                let h = Math.floor(Math.random()*9)+8; let d = new Date(); d.setHours(h);
+        window.inyectarDatosPrueba = async () => {
+            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase para esto', 'error');
+            window.mostrarNotificacion('Inyectando datos de prueba...');
+            for(let i=0; i<15; i++){
+                let h = Math.floor(Math.random()*9)+8; // 8am a 5pm
+                let d = new Date(); d.setHours(h);
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), {
-                    pregunta_1: Math.floor(Math.random()*2)+3, pregunta_2: Math.max(1, Math.floor(Math.random()*3)+2),
+                    pregunta_1: Math.floor(Math.random()*3)+3, pregunta_2: Math.max(1, Math.floor(Math.random()*4)+1),
                     pregunta_3: Math.floor(Math.random()*2)+4, pregunta_4: Math.floor(Math.random()*3)+3, fecha: d.toISOString()
                 });
             }
-        }
+        };
+
+        window.agregarTarea = async () => {
+            if (!conexionActiva || !auth.currentUser) return window.mostrarNotificacion('Falta conectar Firebase', 'error');
+            const txt = document.getElementById('nueva-tarea-texto').value;
+            const resp = document.getElementById('nueva-tarea-responsable').value;
+            if(!txt) return;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: txt, responsable: resp, estado: 'pendiente', timestamp: Date.now() });
+            document.getElementById('nueva-tarea-texto').value = '';
+            window.mostrarNotificacion('Tarea asignada');
+        };
+
+        window.cambiarEstadoTarea = async (id, estado) => {
+            if (conexionActiva && auth.currentUser) await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id), { estado });
+        };
+        window.eliminarTarea = async (id) => {
+            if (conexionActiva && auth.currentUser) await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id));
+        };
+
+        window.actualizarDashboard = () => {
+            const vista = document.getElementById('filtroVista').value;
+            const total = encuestasGlobales.length;
+            document.getElementById('kpi-total').textContent = total;
+            
+            if(total === 0) return document.getElementById('kpi-promedio').textContent = '0.0';
+
+            let sum = { p1:0, p2:0, p3:0, p4:0, total:0 };
+            let turnos = { man: {sum:0, cnt:0}, tar: {sum:0, cnt:0} };
+            let dist = { 5:0, 4:0, 3:0, 2:0, 1:0 };
+
+            encuestasGlobales.forEach(e => {
+                sum.p1 += e.pregunta_1||0; sum.p2 += e.pregunta_2||0; sum.p3 += e.pregunta_3||0; sum.p4 += e.pregunta_4||0;
+                let val = vista === 'todas' ? ((e.pregunta_1||0)+(e.pregunta_2||0)+(e.pregunta_3||0)+(e.pregunta_4||0))/4 : (e[vista]||0);
+                sum.total += val;
+                dist[Math.round(val)] = (dist[Math.round(val)]||0) + 1;
+                
+                if(e.fecha) {
+                    const h = new Date(e.fecha).getHours();
+                    if(h >= 8 && h < 13) { turnos.man.sum += val; turnos.man.cnt++; }
+                    else if(h >= 13 && h <= 17) { turnos.tar.sum += val; turnos.tar.cnt++; }
+                }
+            });
+
+            const prom = (sum.total / total).toFixed(2);
+            document.getElementById('kpi-promedio').textContent = prom;
+            document.getElementById('kpi-sentimiento').textContent = prom >= 4 ? 'Positivo 😁' : prom < 3 ? 'Crítico 😠' : 'Neutral 😐';
+
+            // Graficas
+            window.Chart.defaults.font.family = 'Inter';
+            if(chartTurnos) chartTurnos.destroy();
+            chartTurnos = new window.Chart(document.getElementById('graficaTurnos'), {
+                type: 'bar', data: { labels: ['Mañana (8am-1pm)', 'Tarde (1pm-5pm)'], datasets: [{ label: 'Promedio', data: [turnos.man.cnt?turnos.man.sum/turnos.man.cnt:0, turnos.tar.cnt?turnos.tar.sum/turnos.tar.cnt:0], backgroundColor: '#3b82f6' }] },
+                options: { scales: {y:{max:5, beginAtZero:true}} }
+            });
+
+            if(chartAreas) chartAreas.destroy();
+            chartAreas = new window.Chart(document.getElementById('graficaAreas'), {
+                type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ data: [sum.p1/total, sum.p2/total, sum.p3/total, sum.p4/total], backgroundColor: ['#3b82f6','#f59e0b','#10b981','#8b5cf6'] }] },
+                options: { scales: {y:{max:5, beginAtZero:true}} }
+            });
+
+            if(chartDist) chartDist.destroy();
+            chartDist = new window.Chart(document.getElementById('graficaDistribucion'), {
+                type: 'doughnut', data: { labels: ['Exc','Bue','Reg','Mal','Muy'], datasets: [{ data:[dist[5],dist[4],dist[3],dist[2],dist[1]], backgroundColor:[colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo] }] }
+            });
+
+            // Sugerencias
+            const sugg = document.getElementById('lista-sugerencias');
+            if(sum.p2/total < 3.5) sugg.innerHTML = `<li class="p-3 bg-red-50 border-l-4 border-red-500 rounded">⚠️ Tiempos de espera críticos. Considere habilitar más ventanillas.</li>`;
+            else sugg.innerHTML = `<li class="p-3 bg-emerald-50 border-l-4 border-emerald-500 rounded">✅ Parámetros estables.</li>`;
+        };
+
+        window.generarReportePDF = () => {
+            const { jsPDF } = window.jspdf; const doc = new jsPDF();
+            doc.text("Reporte UnivAdmin", 14, 20);
+            const filas = encuestasGlobales.map(e => [new Date(e.fecha).toLocaleDateString(), e.pregunta_1, e.pregunta_2, e.pregunta_3, e.pregunta_4]);
+            doc.autoTable({ head:[["Fecha", "P1(Pagos)", "P2(Espera)", "P3(Info)", "P4(Gral)"]], body: filas, startY: 30 });
+            doc.save("Reporte.pdf"); window.cerrarModalExportar();
+        };
 
         async function arrancarAdmin() {
+            if (!conexionActiva) {
+                document.getElementById('estado-nube').textContent = "⚠️ MODO LOCAL (Firebase Inactivo)";
+                document.getElementById('estado-nube').classList.replace('text-slate-500', 'text-amber-600');
+                return window.mostrarNotificacion("Falta Configuración de Firebase", "error");
+            }
+
             try {
                 if (typeof __initial_auth_token !== 'undefined') await signInWithCustomToken(auth, __initial_auth_token);
                 else await signInAnonymously(auth);
 
-                // 1. Escuchar Encuestas Globales
+                // Escuchar Encuestas
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), (snap) => {
+                    let viejoTotal = encuestasGlobales.length;
                     encuestasGlobales = [];
                     snap.forEach(d => encuestasGlobales.push({id: d.id, ...d.data()}));
+                    if (encuestasGlobales.length > viejoTotal && viejoTotal > 0) window.mostrarNotificacion("¡Nueva encuesta recibida!");
                     window.actualizarDashboard();
                 }, e => console.error(e));
 
-                // 2. Escuchar Tareas
+                // Escuchar Tareas
                 onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), (snap) => {
+                    const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
                     let ts = []; snap.forEach(d => ts.push({id: d.id, ...d.data()}));
-                    ts.sort((a,b) => b.timestamp - a.timestamp);
-                    renderizarTareasData(ts);
+                    ts.sort((a,b) => b.timestamp - a.timestamp).forEach(t => {
+                        let col = t.estado==='resuelto'?'bg-emerald-100 text-emerald-700':'bg-amber-100 text-amber-700';
+                        tbody.innerHTML += `<tr class="border-b"><td class="p-4">${t.texto}</td><td class="p-4 text-slate-500">${t.responsable}</td><td class="p-4"><span class="px-2 py-1 rounded text-xs ${col}">${t.estado}</span></td><td class="p-4"><select onchange="cambiarEstadoTarea('${t.id}', this.value)" class="text-sm border p-1 rounded"><option value="pendiente" ${t.estado==='pendiente'?'selected':''}>Pendiente</option><option value="resuelto" ${t.estado==='resuelto'?'selected':''}>Resuelto</option></select> <button onclick="eliminarTarea('${t.id}')" class="text-red-500 ml-2">❌</button></td></tr>`;
+                    });
                 }, e => console.error(e));
 
-                // 3. Escuchar Configuraciones (Logo, Sede)
+                // Escuchar Configs
                 onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), (snap) => {
                     if(snap.exists()) {
                         const d = snap.data();
-                        document.getElementById('logo-texto').textContent = d.nombre || 'UnivAdmin';
-                        document.getElementById('logo-sede').textContent = d.sede || 'Centro de Inteligencia';
-                        document.getElementById('input-nombre-institucion').value = d.nombre || 'Universidad Martin Lutero';
-                        document.getElementById('input-sede').value = d.sede || 'Central - Managua';
-                        window.actualizarLogoUI(d.logo);
+                        if(d.nombre) document.getElementById('logo-texto').textContent = d.nombre;
+                        if(d.sede) document.getElementById('logo-sede').textContent = d.sede;
+                        if(d.logo) { document.getElementById('logo-imagen').src = d.logo; document.getElementById('logo-imagen').classList.remove('hidden'); document.getElementById('icono-por-defecto').classList.add('hidden'); }
                     }
                 });
 
-                // 4. Escuchar Preguntas
-                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), (snap) => {
-                    if(snap.exists() && snap.data().lista) {
-                        const p = snap.data().lista;
-                        document.getElementById('input-preg-1').value = p[0]; document.getElementById('input-preg-2').value = p[1];
-                        document.getElementById('input-preg-3').value = p[2]; document.getElementById('input-preg-4').value = p[3];
-                    }
-                });
-
-            } catch(e) { console.error("Fallo de arranque", e); }
+            } catch(e) { console.error("Error Autenticación:", e); }
         }
 
-        // Ejecutar al inicio
         arrancarAdmin();
     </script>
 </body>
