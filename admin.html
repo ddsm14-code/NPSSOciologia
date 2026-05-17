@@ -428,544 +428,313 @@
         <span id="toast-message" class="text-sm font-medium">Operación exitosa</span>
     </div>
 
-    <script>
-        // Lógica de Navegación SPA (Single Page Application)
-        function cambiarVista(idVista, botonClickeado) {
-            // 1. Ocultar todas las vistas
-            document.querySelectorAll('.seccion-vista').forEach(vista => {
-                vista.classList.remove('block');
-                vista.classList.add('hidden');
-            });
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, updateDoc, deleteDoc, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-            // 2. Mostrar la vista seleccionada
-            document.getElementById(idVista).classList.remove('hidden');
-            document.getElementById(idVista).classList.add('block');
+        // CONFIGURACIÓN DE LA NUBE (Igual que en la encuesta)
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'univ-admin-app';
+        
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
 
-            // 3. Reiniciar estilos de todos los botones del menú
-            document.querySelectorAll('.nav-item').forEach(btn => {
-                btn.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item";
-            });
+        // Variables globales para gráficas y datos
+        let chartTurnos = null; let chartAreas = null; let chartDist = null;
+        let encuestasGlobales = [];
+        const colores = { excelente: '#10b981', bueno: '#3b82f6', regular: '#f59e0b', malo: '#f97316', muy_malo: '#ef4444' };
 
-            // 4. Aplicar estilo activo al botón clickeado
+        window.cambiarVista = function(idVista, botonClickeado) {
+            document.querySelectorAll('.seccion-vista').forEach(vista => { vista.classList.remove('block'); vista.classList.add('hidden'); });
+            document.getElementById(idVista).classList.remove('hidden'); document.getElementById(idVista).classList.add('block');
+            document.querySelectorAll('.nav-item').forEach(btn => btn.className = "w-full text-left flex items-center gap-3 text-slate-300 hover:bg-slate-800 hover:text-white px-4 py-3 rounded-xl transition-all nav-item");
             botonClickeado.className = "w-full text-left flex items-center gap-3 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-md shadow-blue-900/20 transition-all nav-item";
-
-            // Si vuelve al dashboard, refrescar datos para que los gráficos se pinten bien
-            if(idVista === 'vista-dashboard') {
-                actualizarDashboard();
-            }
+            if(idVista === 'vista-dashboard') window.actualizarDashboard();
         }
 
-        // Sistema de Notificaciones (Reemplazo de alert)
         let toastTimeout;
-        function mostrarNotificacion(mensaje, tipo = 'exito') {
+        window.mostrarNotificacion = function(mensaje, tipo = 'exito') {
             const toast = document.getElementById('toast-notificacion');
-            const txt = document.getElementById('toast-message');
+            document.getElementById('toast-message').textContent = mensaje;
             const icon = document.getElementById('toast-icon');
-
-            txt.textContent = mensaje;
-            
-            if (tipo === 'exito') {
-                icon.textContent = '✅';
-                toast.classList.replace('bg-red-600', 'bg-slate-800');
-            } else if (tipo === 'error') {
-                icon.textContent = '❌';
-                toast.classList.replace('bg-slate-800', 'bg-red-600');
-            }
-
-            // Animación de entrada
+            if (tipo === 'exito') { icon.textContent = '✅'; toast.classList.replace('bg-red-600', 'bg-slate-800'); } 
+            else { icon.textContent = '❌'; toast.classList.replace('bg-slate-800', 'bg-red-600'); }
             toast.classList.remove('translate-y-20', 'opacity-0');
-            
             clearTimeout(toastTimeout);
-            toastTimeout = setTimeout(() => {
-                // Animación de salida
-                toast.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
+            toastTimeout = setTimeout(() => toast.classList.add('translate-y-20', 'opacity-0'), 3000);
         }
 
-        // Función mock para guardar datos en configuraciones
-        function guardarFalso(mensaje) {
-            mostrarNotificacion(mensaje);
-        }
-
-        function actualizarLogoUI(logoDataUrl) {
+        window.guardarFalso = (msg) => window.mostrarNotificacion(msg);
+        
+        window.actualizarLogoUI = function(logoDataUrl) {
             const imgLogo = document.getElementById('logo-imagen');
             const iconoDefecto = document.getElementById('icono-por-defecto');
-            
-            if (logoDataUrl) {
-                imgLogo.src = logoDataUrl;
-                imgLogo.classList.remove('hidden');
-                iconoDefecto.classList.add('hidden');
-            } else {
-                imgLogo.classList.add('hidden');
-                iconoDefecto.classList.remove('hidden');
-            }
+            if (logoDataUrl) { imgLogo.src = logoDataUrl; imgLogo.classList.remove('hidden'); iconoDefecto.classList.add('hidden'); } 
+            else { imgLogo.classList.add('hidden'); iconoDefecto.classList.remove('hidden'); }
         }
 
-        function guardarConfiguracion() {
+        window.guardarConfiguracion = async function() {
+            if(!auth.currentUser) return;
             const nuevoNombre = document.getElementById('input-nombre-institucion').value;
             const nuevaSede = document.getElementById('input-sede').value;
             const inputLogo = document.getElementById('input-logo');
             
-            // Actualizar texto UI
-            document.getElementById('logo-texto').textContent = nuevoNombre || 'UnivAdmin';
-            document.getElementById('logo-sede').textContent = nuevaSede || 'Centro de Inteligencia';
-            
-            // Guardar textos en memoria
-            localStorage.setItem('nombreInstitucion', nuevoNombre);
-            localStorage.setItem('sedeInstitucion', nuevaSede);
+            let dataAguardar = { nombre: nuevoNombre, sede: nuevaSede };
 
-            // Procesar la imagen si el usuario subió una
+            const guardarEnBD = async (data) => {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), data);
+                window.mostrarNotificacion('Configuración guardada en la nube');
+            };
+
             if (inputLogo.files && inputLogo.files[0]) {
-                const archivo = inputLogo.files[0];
                 const lector = new FileReader();
-                
                 lector.onload = function(e) {
-                    const base64Imagen = e.target.result;
-                    // Guardar en LocalStorage
-                    localStorage.setItem('logoInstitucion', base64Imagen);
-                    // Actualizar UI
-                    actualizarLogoUI(base64Imagen);
-                    mostrarNotificacion('Configuración y logo guardados correctamente');
+                    dataAguardar.logo = e.target.result; // Base64
+                    guardarEnBD(dataAguardar);
                 };
-                
-                lector.readAsDataURL(archivo);
+                lector.readAsDataURL(inputLogo.files[0]);
             } else {
-                mostrarNotificacion('Configuración guardada correctamente');
+                guardarEnBD(dataAguardar);
             }
         }
 
-        // Nueva función para guardar preguntas personalizadas
-        function guardarPreguntas() {
-            const p1 = document.getElementById('input-preg-1').value;
-            const p2 = document.getElementById('input-preg-2').value;
-            const p3 = document.getElementById('input-preg-3').value;
-            const p4 = document.getElementById('input-preg-4').value;
-            
-            const nuevasPreguntas = [p1, p2, p3, p4];
-            localStorage.setItem('preguntasUniversidad', JSON.stringify(nuevasPreguntas));
-            
-            mostrarNotificacion('Preguntas sincronizadas con las encuestas');
+        window.guardarPreguntas = async function() {
+            if(!auth.currentUser) return;
+            const preguntas = [
+                document.getElementById('input-preg-1').value, document.getElementById('input-preg-2').value,
+                document.getElementById('input-preg-3').value, document.getElementById('input-preg-4').value
+            ];
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), { lista: preguntas });
+            window.mostrarNotificacion('Preguntas sincronizadas con todas las pantallas');
         }
 
-        // Sistema de Modales Personalizados (Reemplazo de confirm y prompt nativos)
-        function abrirModalLimpiar() {
-            const modal = document.getElementById('modal-limpiar');
-            const content = document.getElementById('modal-limpiar-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
+        window.abrirModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
+        window.cerrarModalLimpiar = () => { const m=document.getElementById('modal-limpiar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
+        window.abrirModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.remove('hidden'); setTimeout(()=>m.classList.remove('opacity-0'),10); }
+        window.cerrarModalExportar = () => { const m=document.getElementById('modal-exportar'); m.classList.add('opacity-0'); setTimeout(()=>m.classList.add('hidden'),300); }
+        window.toggleFechasPDF = () => {
+            const r = document.getElementById('exportar-rango').value; const c = document.getElementById('contenedor-fechas');
+            if(r === 'fechas'){ c.classList.remove('hidden'); c.classList.add('grid'); } else { c.classList.add('hidden'); c.classList.remove('grid'); }
         }
 
-        function cerrarModalLimpiar() {
-            const modal = document.getElementById('modal-limpiar');
-            const content = document.getElementById('modal-limpiar-content');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
+        window.ejecutarLimpiezaDatos = async function() {
+            if(!auth.currentUser) return;
+            window.cerrarModalLimpiar();
+            try {
+                // Borrar todos los documentos uno por uno
+                const querySnap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'));
+                querySnap.forEach((docSnap) => deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'encuestas', docSnap.id)));
+                window.mostrarNotificacion('Memoria de la nube borrada');
+            } catch(e) { window.mostrarNotificacion('Error al limpiar', 'error'); }
         }
 
-        function ejecutarLimpiezaDatos() {
-            localStorage.removeItem('encuestasUniversidad');
-            cerrarModalLimpiar();
-            actualizarDashboard();
-            mostrarNotificacion('Memoria borrada completamente');
+        window.generarReportePDF = function() {
+            const { jsPDF } = window.jspdf; const docPdf = new jsPDF();
+            let datos = [...encuestasGlobales];
+            const rango = document.getElementById('exportar-rango').value;
+
+            if (rango === 'fechas') {
+                const fIni = document.getElementById('fecha-inicio').value; const fFin = document.getElementById('fecha-fin').value;
+                if (!fIni || !fFin) { window.mostrarNotificacion('Selecciona ambas fechas', 'error'); return; }
+                const inicio = new Date(fIni); inicio.setHours(0,0,0,0); const fin = new Date(fFin); fin.setHours(23,59,59,999);
+                datos = datos.filter(e => { const d = new Date(e.fecha); return d >= inicio && d <= fin; });
+            }
+
+            if (datos.length === 0) { window.mostrarNotificacion('No hay datos en ese rango', 'error'); return; }
+            docPdf.setFontSize(16); docPdf.text("Reporte de Satisfacción", 14, 20);
+            docPdf.setFontSize(10); docPdf.text(`Total: ${datos.length} | Generado: ${new Date().toLocaleDateString()}`, 14, 28);
+
+            const filas = datos.map(e => {
+                const d = new Date(e.fecha);
+                const p1=e.pregunta_1||0, p2=e.pregunta_2||0, p3=e.pregunta_3||0, p4=e.pregunta_4||0;
+                return [d.toLocaleDateString(), d.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), p1, p2, p3, p4, ((p1+p2+p3+p4)/4).toFixed(2)];
+            });
+            docPdf.autoTable({ head: [["Fecha", "Hora", "P1", "P2", "P3", "P4", "Prom"]], body: filas, startY: 35 });
+            docPdf.save(`Reporte_${Date.now()}.pdf`); window.cerrarModalExportar(); window.mostrarNotificacion('PDF Generado');
         }
 
-        function abrirModalExportar() {
-            const modal = document.getElementById('modal-exportar');
-            const content = document.getElementById('modal-exportar-content');
-            modal.classList.remove('hidden');
-            setTimeout(() => {
-                modal.classList.remove('opacity-0');
-                content.classList.remove('scale-95');
-            }, 10);
-        }
-
-        function cerrarModalExportar() {
-            const modal = document.getElementById('modal-exportar');
-            const content = document.getElementById('modal-exportar-content');
-            modal.classList.add('opacity-0');
-            content.classList.add('scale-95');
-            setTimeout(() => {
-                modal.classList.add('hidden');
-            }, 300);
-        }
-
-        let chartTurnos = null;
-        let chartAreas = null;
-        let chartDist = null;
-
-        const colores = { excelente: '#10b981', bueno: '#3b82f6', regular: '#f59e0b', malo: '#f97316', muy_malo: '#ef4444' };
-
-        function actualizarDashboard() {
-            const historial = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
+        window.actualizarDashboard = function() {
             const filtroActual = document.getElementById('filtroVista').value;
-            procesarYRenderizar(historial, filtroActual);
+            procesarYRenderizar(encuestasGlobales, filtroActual);
         }
 
         function procesarYRenderizar(datos, vista) {
-            const totalEncuestas = datos.length;
-            document.getElementById('kpi-total').textContent = totalEncuestas;
-
-            if (totalEncuestas === 0) {
-                renderizarVacio();
-                return;
-            }
+            const total = datos.length;
+            document.getElementById('kpi-total').textContent = total;
+            if (total === 0) { renderizarVacio(); return; }
 
             let sumas = { p1: 0, p2: 0, p3: 0, p4: 0, totalGlobal: 0 };
             let turnos = { mañana: { suma: 0, count: 0 }, tarde: { suma: 0, count: 0 } };
             let distribucion = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
 
             datos.forEach(enc => {
-                sumas.p1 += enc.pregunta_1 || 0;
-                sumas.p2 += enc.pregunta_2 || 0;
-                sumas.p3 += enc.pregunta_3 || 0;
-                sumas.p4 += enc.pregunta_4 || 0;
-
-                let valorEvaluado = 0;
-                if (vista === 'todas') {
-                    valorEvaluado = ((enc.pregunta_1||0) + (enc.pregunta_2||0) + (enc.pregunta_3||0) + (enc.pregunta_4||0)) / 4;
-                } else {
-                    valorEvaluado = enc[vista] || 0;
-                }
-                sumas.totalGlobal += valorEvaluado;
-                distribucion[Math.round(valorEvaluado)] = (distribucion[Math.round(valorEvaluado)] || 0) + 1;
+                sumas.p1 += enc.pregunta_1||0; sumas.p2 += enc.pregunta_2||0; sumas.p3 += enc.pregunta_3||0; sumas.p4 += enc.pregunta_4||0;
+                let val = vista === 'todas' ? ((enc.pregunta_1||0)+(enc.pregunta_2||0)+(enc.pregunta_3||0)+(enc.pregunta_4||0))/4 : (enc[vista]||0);
+                sumas.totalGlobal += val;
+                distribucion[Math.round(val)] = (distribucion[Math.round(val)] || 0) + 1;
 
                 if(enc.fecha) {
                     const hora = new Date(enc.fecha).getHours();
-                    if (hora >= 8 && hora < 13) { turnos.mañana.suma += valorEvaluado; turnos.mañana.count++; }
-                    else if (hora >= 13 && hora < 17) { turnos.tarde.suma += valorEvaluado; turnos.tarde.count++; }
+                    if (hora >= 8 && hora < 13) { turnos.mañana.suma += val; turnos.mañana.count++; }
+                    else if (hora >= 13 && hora < 17) { turnos.tarde.suma += val; turnos.tarde.count++; }
                 }
             });
 
-            const promediosAreas = {
-                p1: (sumas.p1 / totalEncuestas).toFixed(2), p2: (sumas.p2 / totalEncuestas).toFixed(2),
-                p3: (sumas.p3 / totalEncuestas).toFixed(2), p4: (sumas.p4 / totalEncuestas).toFixed(2)
-            };
-            const promedioSeleccionado = (sumas.totalGlobal / totalEncuestas).toFixed(2);
-            const promTurnos = {
-                mañana: turnos.mañana.count > 0 ? (turnos.mañana.suma / turnos.mañana.count).toFixed(2) : 0,
-                tarde: turnos.tarde.count > 0 ? (turnos.tarde.suma / turnos.tarde.count).toFixed(2) : 0
-            };
+            const promAreas = { p1: (sumas.p1/total).toFixed(2), p2: (sumas.p2/total).toFixed(2), p3: (sumas.p3/total).toFixed(2), p4: (sumas.p4/total).toFixed(2) };
+            const promSel = (sumas.totalGlobal / total).toFixed(2);
+            const promTurnos = { mañ: turnos.mañana.count>0 ? (turnos.mañana.suma/turnos.mañana.count).toFixed(2) : 0, tar: turnos.tarde.count>0 ? (turnos.tarde.suma/turnos.tarde.count).toFixed(2) : 0 };
 
-            document.getElementById('kpi-promedio').textContent = promedioSeleccionado;
-            
-            let sentimiento = "Neutral 😐"; let colorSentimiento = "text-amber-500";
-            if (promedioSeleccionado >= 4.2) { sentimiento = "Excelente 😁"; colorSentimiento = "text-emerald-500"; }
-            else if (promedioSeleccionado >= 3.5) { sentimiento = "Bueno 🙂"; colorSentimiento = "text-blue-500"; }
-            else if (promedioSeleccionado < 3.0) { sentimiento = "Crítico 😠"; colorSentimiento = "text-red-500"; }
-            
-            const kpiSentimiento = document.getElementById('kpi-sentimiento');
-            kpiSentimiento.textContent = sentimiento;
-            kpiSentimiento.className = `text-2xl font-bold mt-2 ${colorSentimiento}`;
+            document.getElementById('kpi-promedio').textContent = promSel;
+            let sent = "Neutral 😐", col = "text-amber-500";
+            if(promSel >= 4.2) { sent = "Excelente 😁"; col = "text-emerald-500"; } else if(promSel < 3.0) { sent = "Crítico 😠"; col = "text-red-500"; }
+            document.getElementById('kpi-sentimiento').textContent = sent; document.getElementById('kpi-sentimiento').className = `text-2xl font-bold mt-2 ${col}`;
 
-            let menores = [
-                { nombre: "Pagos y Matrícula", valor: parseFloat(promediosAreas.p1) },
-                { nombre: "Tiempos de Espera", valor: parseFloat(promediosAreas.p2) },
-                { nombre: "Claridad Info.", valor: parseFloat(promediosAreas.p3) },
-                { nombre: "Atención Gral.", valor: parseFloat(promediosAreas.p4) }
-            ];
-            menores.sort((a, b) => a.valor - b.valor);
-            
-            const kpiCritica = document.getElementById('kpi-critica');
-            const kpiCardCritica = document.getElementById('kpi-card-critica');
-            
-            if (menores[0].valor <= 3.5) {
-                kpiCritica.textContent = `${menores[0].nombre} (${menores[0].valor})`;
-                kpiCritica.classList.replace('text-emerald-600', 'text-red-600');
-                kpiCardCritica.classList.replace('border-b-emerald-500', 'border-b-red-500');
-            } else {
-                kpiCritica.textContent = "Todo en orden ✨";
-                kpiCritica.classList.replace('text-red-600', 'text-emerald-600');
-                kpiCardCritica.classList.replace('border-b-red-500', 'border-b-emerald-500');
-            }
+            let menores = [ {n: "Pagos/Matrícula", v: parseFloat(promAreas.p1)}, {n: "Espera", v: parseFloat(promAreas.p2)}, {n: "Información", v: parseFloat(promAreas.p3)} ];
+            menores.sort((a,b)=>a.v-b.v);
+            const crit = document.getElementById('kpi-critica'), cCard = document.getElementById('kpi-card-critica');
+            if(menores[0].v <= 3.5) { crit.textContent = `${menores[0].n} (${menores[0].v})`; crit.className = 'text-xl font-bold text-red-600 mt-2'; cCard.classList.replace('border-b-emerald-500','border-b-red-500'); }
+            else { crit.textContent = "Todo en orden ✨"; crit.className = 'text-xl font-bold text-emerald-600 mt-2'; cCard.classList.replace('border-b-red-500','border-b-emerald-500'); }
 
-            document.getElementById('etiqueta-turno').textContent = vista === 'todas' ? 'Promedio Global' : 'Área Específica';
-
-            renderizarGraficas(promTurnos, promediosAreas, distribucion, vista);
-            generarSugerenciasDinamicas(vista, promedioSeleccionado, promTurnos, promediosAreas);
+            document.getElementById('etiqueta-turno').textContent = vista==='todas' ? 'Promedio Global' : 'Área Específica';
+            renderizarGraficas(promTurnos, promAreas, distribucion, vista);
+            generarSugerenciasDinamicas(vista, promSel, promTurnos, promAreas);
         }
 
-        function renderizarGraficas(turnos, areas, dist, vista) {
-            Chart.defaults.font.family = 'Inter';
-            Chart.defaults.color = '#64748b';
-
-            if (chartTurnos) chartTurnos.destroy();
-            const ctxTurnos = document.getElementById('graficaTurnos').getContext('2d');
-            let turnoColor = '#6366f1';
-            if (parseFloat(turnos.tarde) < 3.0) turnoColor = '#ef4444';
-
-            chartTurnos = new Chart(ctxTurnos, {
-                type: 'line',
-                data: {
-                    labels: ['Mañana (8am-1pm)', 'Tarde (1pm-5pm)'],
-                    datasets: [{
-                        label: 'Satisfacción por Turno', data: [turnos.mañana, turnos.tarde],
-                        borderColor: turnoColor, backgroundColor: turnoColor + '33', borderWidth: 3,
-                        pointBackgroundColor: '#fff', pointBorderColor: turnoColor, pointBorderWidth: 2, pointRadius: 6, fill: true, tension: 0.4
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } }, plugins: { legend: { display: false } } }
-            });
-
-            if (chartAreas) chartAreas.destroy();
-            const ctxAreas = document.getElementById('graficaAreas').getContext('2d');
-            const coloresBarras = [
-                vista === 'pregunta_1' || vista === 'todas' ? '#3b82f6' : '#e2e8f0',
-                vista === 'pregunta_2' || vista === 'todas' ? '#f59e0b' : '#e2e8f0',
-                vista === 'pregunta_3' || vista === 'todas' ? '#10b981' : '#e2e8f0',
-                vista === 'pregunta_4' || vista === 'todas' ? '#8b5cf6' : '#e2e8f0'
-            ];
-
-            chartAreas = new Chart(ctxAreas, {
-                type: 'bar',
-                data: {
-                    labels: ['Pagos/Matrícula', 'Tiempos Espera', 'Claridad Info.', 'Atención Gral.'],
-                    datasets: [{ data: [areas.p1, areas.p2, areas.p3, areas.p4], backgroundColor: coloresBarras, borderRadius: 6 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, max: 5 } }, plugins: { legend: { display: false } } }
-            });
-
-            if (chartDist) chartDist.destroy();
-            const ctxDist = document.getElementById('graficaDistribucion').getContext('2d');
-            chartDist = new Chart(ctxDist, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Excelente (5)', 'Buena (4)', 'Regular (3)', 'Mala (2)', 'Muy Mala (1)'],
-                    datasets: [{ data: [dist[5], dist[4], dist[3], dist[2], dist[1]], backgroundColor: [colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo], borderWidth: 0, hoverOffset: 4 }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, cutout: '65%', plugins: { legend: { position: 'right', labels: { boxWidth: 12, font: { size: 11 } } } } }
-            });
+        function renderizarGraficas(t, a, d, v) {
+            window.Chart.defaults.font.family = 'Inter'; window.Chart.defaults.color = '#64748b';
+            if(chartTurnos) chartTurnos.destroy();
+            chartTurnos = new window.Chart(document.getElementById('graficaTurnos'), { type: 'line', data: { labels: ['Mañana (8-1pm)', 'Tarde (1-5pm)'], datasets: [{ data: [t.mañ, t.tar], borderColor: t.tar<3.0?'#ef4444':'#6366f1', fill: false, tension: 0.4 }] }, options: { responsive: true, maintainAspectRatio: false, scales: {y:{max:5, beginAtZero:true}} } });
+            
+            if(chartAreas) chartAreas.destroy();
+            const col = [v==='pregunta_1'||v==='todas'?'#3b82f6':'#e2e8f0', v==='pregunta_2'||v==='todas'?'#f59e0b':'#e2e8f0', v==='pregunta_3'||v==='todas'?'#10b981':'#e2e8f0', v==='pregunta_4'||v==='todas'?'#8b5cf6':'#e2e8f0'];
+            chartAreas = new window.Chart(document.getElementById('graficaAreas'), { type: 'bar', data: { labels: ['Pagos', 'Espera', 'Info', 'Gral'], datasets: [{ data: [a.p1, a.p2, a.p3, a.p4], backgroundColor: col }] }, options: { responsive: true, maintainAspectRatio: false, scales: {y:{max:5, beginAtZero:true}} } });
+            
+            if(chartDist) chartDist.destroy();
+            chartDist = new window.Chart(document.getElementById('graficaDistribucion'), { type: 'doughnut', data: { labels: ['Exc(5)', 'Bue(4)', 'Reg(3)', 'Mal(2)', 'Muy(1)'], datasets: [{ data: [d[5],d[4],d[3],d[2],d[1]], backgroundColor: [colores.excelente, colores.bueno, colores.regular, colores.malo, colores.muy_malo] }] }, options: { responsive: true, maintainAspectRatio: false, cutout: '65%' } });
         }
 
         function generarSugerenciasDinamicas(vista, promedio, turnos, areas) {
-            const lista = document.getElementById('lista-sugerencias');
-            lista.innerHTML = '';
             let html = '';
-            const crearAlerta = (titulo, texto, tipo) => {
-                const colors = { critico: 'bg-red-50 border-l-4 border-red-500 text-red-900', bueno: 'bg-emerald-50 border-l-4 border-emerald-500 text-emerald-900', alerta: 'bg-amber-50 border-l-4 border-amber-500 text-amber-900', info: 'bg-blue-50 border-l-4 border-blue-500 text-blue-900' };
-                return `<li class="p-4 rounded-r-xl ${colors[tipo]} text-sm shadow-sm"><strong class="block text-base mb-1">${titulo}</strong><p class="opacity-90 leading-relaxed">${texto}</p></li>`;
+            const cA = (tit, txt, tip) => {
+                const c = {critico:'bg-red-50 border-red-500 text-red-900', bueno:'bg-emerald-50 border-emerald-500 text-emerald-900', info:'bg-blue-50 border-blue-500 text-blue-900'};
+                return `<li class="p-4 rounded-r-xl border-l-4 ${c[tip]} text-sm mb-2 shadow-sm"><strong class="block text-base">${tit}</strong><p>${txt}</p></li>`;
             };
-
-            if (parseFloat(turnos.tarde) < parseFloat(turnos.mañana) - 0.5 && turnos.tarde > 0) {
-                html += crearAlerta('⚠️ Fatiga del Personal en la Tarde', `La calidad percibida cae a <b>${turnos.tarde}</b> en el turno vespertino. Considere rotar al personal.`, 'alerta');
+            if(parseFloat(turnos.tar) < parseFloat(turnos.mañ) - 0.5 && turnos.tar > 0) html += cA('⚠️ Fatiga Tarde', `Calidad cae a ${turnos.tar} en la tarde. Rotar personal.`, 'critico');
+            if(vista === 'todas') {
+                if(promedio >= 4) html += cA('🌟 Excelente', 'Estándares altos hoy.', 'bueno'); else if (promedio < 3.5) html += cA('🚨 Alerta', 'Promedio deficiente. Asigna tareas.', 'critico');
             }
-
-            if (vista === 'todas') {
-                if (promedio >= 4.0) html += crearAlerta('🌟 Excelente Desempeño Global', 'La universidad mantiene estándares altos de servicio hoy.', 'bueno');
-                else if (promedio < 3.0) html += crearAlerta('🚨 Crisis de Satisfacción Múltiple', 'El promedio general es deficiente. Revise las áreas.', 'critico');
-                let menor = Math.min(areas.p1, areas.p2, areas.p3, areas.p4);
-                if (menor == areas.p2 && menor < 3.5) html += crearAlerta('⏳ Cuello de botella en Esperas', 'El tiempo de espera es la queja principal globalmente. Necesita más personal.', 'critico');
-            } else if (vista === 'pregunta_1') {
-                if (promedio < 3.5) html += crearAlerta('💳 Problemas con Pagos', 'Los procesos financieros están frustrando a los estudiantes.', 'critico');
-                else html += crearAlerta('✅ Fluidez en Matrícula', 'El proceso financiero opera de manera excelente.', 'bueno');
-            } else if (vista === 'pregunta_2') {
-                if (promedio < 3.5) html += crearAlerta('⏱️ Tiempos Inaceptables', `La calificación es de ${promedio}. Considere apps de turnos.`, 'critico');
-            } else if (vista === 'pregunta_3') {
-                if (promedio < 3.5) html += crearAlerta('📢 Deficiencia en Comunicación', 'Los estudiantes sienten que la información es confusa.', 'alerta');
-            }
-
-            if (html === '') html = crearAlerta('ℹ️ Datos Estables', 'Los indicadores están en rangos normales y operando sin anomalías.', 'info');
-            lista.innerHTML = html;
+            if(!html) html = cA('ℹ️ Estable', 'Operando normal.', 'info');
+            document.getElementById('lista-sugerencias').innerHTML = html;
         }
 
         function renderizarVacio() {
-            document.getElementById('kpi-promedio').textContent = '0.0';
-            document.getElementById('kpi-sentimiento').textContent = 'Sin Datos';
-            document.getElementById('kpi-critica').textContent = '-';
-            document.getElementById('lista-sugerencias').innerHTML = '<li class="p-4 bg-slate-100 text-slate-500 rounded-lg text-center border border-slate-200">No hay datos suficientes. Utiliza el botón "Generar Datos".</li>';
-            if (chartTurnos) chartTurnos.destroy(); if (chartAreas) chartAreas.destroy(); if (chartDist) chartDist.destroy();
+            document.getElementById('kpi-promedio').textContent = '0.0'; document.getElementById('kpi-sentimiento').textContent = 'Sin Datos';
+            document.getElementById('lista-sugerencias').innerHTML = '<li class="p-4 bg-slate-100 text-slate-500">Sin datos. Inyecta datos de prueba.</li>';
+            if(chartTurnos) chartTurnos.destroy(); if(chartAreas) chartAreas.destroy(); if(chartDist) chartDist.destroy();
         }
 
-        function inyectarDatosPrueba() {
-            let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
-            let ahora = new Date();
-            for (let i = 0; i < 50; i++) {
-                let horaAleatoria = Math.floor(Math.random() * 9) + 8; // Entre 8 y 16 (8am a 4:59pm)
-                let fechaFalsa = new Date(ahora); fechaFalsa.setHours(horaAleatoria);
-                let penTarde = (horaAleatoria >= 13 && horaAleatoria <= 16) ? 2 : 0;
-                datos.push({
-                    pregunta_1: Math.floor(Math.random() * 2) + 3,
-                    pregunta_2: Math.max(1, Math.floor(Math.random() * 3) + 3 - penTarde),
-                    pregunta_3: Math.floor(Math.random() * 2) + 4,
-                    pregunta_4: Math.floor(Math.random() * 3) + 3,
-                    fecha: fechaFalsa.toISOString()
-                });
-            }
-            localStorage.setItem('encuestasUniversidad', JSON.stringify(datos));
-            actualizarDashboard();
-            mostrarNotificacion('50 Encuestas generadas con éxito');
-        }
-
-        function toggleFechasPDF() {
-            const rango = document.getElementById('exportar-rango').value;
-            const contenedorFechas = document.getElementById('contenedor-fechas');
-            if (rango === 'fechas') { contenedorFechas.classList.remove('hidden'); contenedorFechas.classList.add('grid'); } 
-            else { contenedorFechas.classList.add('hidden'); contenedorFechas.classList.remove('grid'); }
-        }
-
-        function generarReportePDF() {
-            const { jsPDF } = window.jspdf; const doc = new jsPDF();
-            let datos = JSON.parse(localStorage.getItem('encuestasUniversidad')) || [];
-            const rango = document.getElementById('exportar-rango').value;
-
-            if (rango === 'fechas') {
-                const fechaInicio = document.getElementById('fecha-inicio').value;
-                const fechaFin = document.getElementById('fecha-fin').value;
-                if (!fechaInicio || !fechaFin) { mostrarNotificacion('Selecciona ambas fechas', 'error'); return; }
-                const inicio = new Date(fechaInicio); inicio.setHours(0,0,0,0);
-                const fin = new Date(fechaFin); fin.setHours(23,59,59,999);
-                datos = datos.filter(enc => {
-                    if(!enc.fecha) return false; const fechaEnc = new Date(enc.fecha);
-                    return fechaEnc >= inicio && fechaEnc <= fin;
-                });
-            }
-
-            if (datos.length === 0) { mostrarNotificacion('No hay datos en ese rango', 'error'); return; }
-
-            doc.setFont("helvetica", "bold"); doc.setFontSize(18); doc.text("Reporte de Satisfacción - UnivAdmin", 14, 20);
-            doc.setFontSize(10); doc.setFont("helvetica", "normal");
-            doc.text(`Fecha de emisión: ${new Date().toLocaleDateString()}`, 14, 28);
-            doc.text(`Total encuestas en este reporte: ${datos.length}`, 14, 34);
-
-            const columnas = ["Fecha", "Hora", "Pagos", "Espera", "Info", "General", "Prom"];
-            const filas = datos.map(enc => {
-                const d = enc.fecha ? new Date(enc.fecha) : new Date();
-                const p1 = enc.pregunta_1||0, p2 = enc.pregunta_2||0, p3 = enc.pregunta_3||0, p4 = enc.pregunta_4||0;
-                return [d.toLocaleDateString(), d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}), p1, p2, p3, p4, ((p1+p2+p3+p4)/4).toFixed(2)];
-            });
-
-            doc.autoTable({ head: [columnas], body: filas, startY: 42, theme: 'striped', headStyles: { fillColor: [30, 41, 59] }, styles: { font: 'helvetica', fontSize: 9, halign: 'center' } });
-            doc.save(`Reporte_${Date.now()}.pdf`);
-            cerrarModalExportar();
-            mostrarNotificacion('PDF descargado con éxito');
-        }
-
-        // LÓGICA DE WORKFLOW (PLANES DE ACCIÓN)
-        function renderizarTareas() {
-            // Inicializar con una tarea de ejemplo si está vacío
-            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad'));
-            if (!tareas) {
-                tareas = [
-                    { id: 1, texto: "Revisar tiempos de espera en ventanilla #3", responsable: "Supervisor de Admisión", estado: "en_proceso" }
-                ];
-                localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
-            }
+        function renderizarTareasData(tareas) {
+            const tbody = document.getElementById('lista-tareas'); tbody.innerHTML = '';
+            if(tareas.length === 0) { tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-500">No hay planes activos.</td></tr>'; return; }
             
-            const tbody = document.getElementById('lista-tareas');
-            tbody.innerHTML = '';
-            
-            if(tareas.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="4" class="p-6 text-center text-slate-500 italic">No hay planes de acción activos. ¡Todo en orden!</td></tr>';
-                return;
-            }
-
             tareas.forEach(tarea => {
-                let colorEstado = 'bg-amber-100 text-amber-700 border-amber-200'; // pendiente
-                let textoEstado = 'Pendiente ⏳';
-                if(tarea.estado === 'en_proceso') { colorEstado = 'bg-blue-100 text-blue-700 border-blue-200'; textoEstado = 'En Proceso 🔄'; }
-                else if(tarea.estado === 'resuelto') { colorEstado = 'bg-emerald-100 text-emerald-700 border-emerald-200'; textoEstado = 'Resuelto ✅'; }
-
+                let col = 'bg-amber-100 text-amber-700', txt = 'Pendiente ⏳';
+                if(tarea.estado === 'en_proceso') { col = 'bg-blue-100 text-blue-700'; txt = 'En Proceso 🔄'; }
+                else if(tarea.estado === 'resuelto') { col = 'bg-emerald-100 text-emerald-700'; txt = 'Resuelto ✅'; }
+                
                 tbody.innerHTML += `
-                    <tr class="hover:bg-slate-50 transition-colors group">
-                        <td class="p-4 font-medium text-slate-800">${tarea.texto}</td>
-                        <td class="p-4 text-slate-500">${tarea.responsable}</td>
-                        <td class="p-4">
-                            <span class="px-3 py-1 rounded-full text-xs font-bold border ${colorEstado}">${textoEstado}</span>
-                        </td>
-                        <td class="p-4 flex items-center gap-3">
-                            <select onchange="cambiarEstadoTarea(${tarea.id}, this.value)" class="text-sm bg-white border border-slate-300 text-slate-700 rounded-md p-1.5 outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
-                                <option value="pendiente" ${tarea.estado === 'pendiente' ? 'selected' : ''}>Marcar Pendiente</option>
-                                <option value="en_proceso" ${tarea.estado === 'en_proceso' ? 'selected' : ''}>Marcar En Proceso</option>
-                                <option value="resuelto" ${tarea.estado === 'resuelto' ? 'selected' : ''}>Marcar Resuelto</option>
+                    <tr class="hover:bg-slate-50 border-b border-slate-100">
+                        <td class="p-4 font-medium">${tarea.texto}</td><td class="p-4 text-slate-500">${tarea.responsable}</td>
+                        <td class="p-4"><span class="px-3 py-1 rounded-full text-xs font-bold ${col}">${txt}</span></td>
+                        <td class="p-4 flex gap-2">
+                            <select onchange="cambiarEstadoTarea('${tarea.id}', this.value)" class="text-sm border p-1 rounded">
+                                <option value="pendiente" ${tarea.estado==='pendiente'?'selected':''}>Pendiente</option>
+                                <option value="en_proceso" ${tarea.estado==='en_proceso'?'selected':''}>Proceso</option>
+                                <option value="resuelto" ${tarea.estado==='resuelto'?'selected':''}>Resuelto</option>
                             </select>
-                            <button onclick="eliminarTarea(${tarea.id})" class="text-slate-400 hover:text-red-500 transition-colors" title="Eliminar Tarea">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                            </button>
+                            <button onclick="eliminarTarea('${tarea.id}')" class="text-red-400 hover:text-red-600">❌</button>
                         </td>
-                    </tr>
-                `;
+                    </tr>`;
             });
         }
 
-        function agregarTarea() {
-            const texto = document.getElementById('nueva-tarea-texto').value.trim();
-            const resp = document.getElementById('nueva-tarea-responsable').value;
-            
-            if(!texto) {
-                mostrarNotificacion('Escribe una acción a tomar', 'error');
-                return;
-            }
-            
-            const tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-            // Agregamos la nueva tarea al principio de la lista
-            tareas.unshift({ id: Date.now(), texto: texto, responsable: resp, estado: 'pendiente' });
-            localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
-            
-            document.getElementById('nueva-tarea-texto').value = '';
-            renderizarTareas();
-            mostrarNotificacion('Plan de acción asignado exitosamente');
+        window.agregarTarea = async function() {
+            if(!auth.currentUser) return;
+            const t = document.getElementById('nueva-tarea-texto').value; const r = document.getElementById('nueva-tarea-responsable').value;
+            if(!t) return window.mostrarNotificacion('Escribe una acción', 'error');
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), { texto: t, responsable: r, estado: 'pendiente', timestamp: Date.now() });
+            document.getElementById('nueva-tarea-texto').value = ''; window.mostrarNotificacion('Tarea Asignada');
         }
 
-        function cambiarEstadoTarea(id, nuevoEstado) {
-            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-            const index = tareas.findIndex(t => t.id === id);
-            if(index !== -1) {
-                tareas[index].estado = nuevoEstado;
-                localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
-                renderizarTareas();
-                
-                if (nuevoEstado === 'resuelto') {
-                    mostrarNotificacion('¡Excelente! Tarea resuelta ✅');
-                } else {
-                    mostrarNotificacion('Estado de tarea actualizado');
-                }
-            }
-        }
-        
-        function eliminarTarea(id) {
-            let tareas = JSON.parse(localStorage.getItem('tareasUniversidad')) || [];
-            tareas = tareas.filter(t => t.id !== id);
-            localStorage.setItem('tareasUniversidad', JSON.stringify(tareas));
-            renderizarTareas();
-            mostrarNotificacion('Tarea eliminada del historial');
+        window.cambiarEstadoTarea = async function(id, estado) {
+            if(!auth.currentUser) return;
+            await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id), { estado: estado });
         }
 
-        window.onload = function() {
-            const nombreGuardado = localStorage.getItem('nombreInstitucion');
-            const sedeGuardada = localStorage.getItem('sedeInstitucion');
-            const logoGuardado = localStorage.getItem('logoInstitucion');
-            const preguntasGuardadas = JSON.parse(localStorage.getItem('preguntasUniversidad'));
+        window.eliminarTarea = async function(id) {
+            if(!auth.currentUser) return;
+            await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'tareas', id));
+        }
 
-            if (nombreGuardado) {
-                document.getElementById('logo-texto').textContent = nombreGuardado;
-                const selectNombre = document.getElementById('input-nombre-institucion');
-                if(selectNombre) selectNombre.value = nombreGuardado;
+        window.inyectarDatosPrueba = async function() {
+            if(!auth.currentUser) return;
+            window.mostrarNotificacion('Inyectando datos en la nube...', 'info');
+            for(let i=0; i<20; i++){
+                let h = Math.floor(Math.random()*9)+8; let d = new Date(); d.setHours(h);
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), {
+                    pregunta_1: Math.floor(Math.random()*2)+3, pregunta_2: Math.max(1, Math.floor(Math.random()*3)+2),
+                    pregunta_3: Math.floor(Math.random()*2)+4, pregunta_4: Math.floor(Math.random()*3)+3, fecha: d.toISOString()
+                });
             }
-            if (sedeGuardada) {
-                document.getElementById('logo-sede').textContent = sedeGuardada;
-                const selectSede = document.getElementById('input-sede');
-                if(selectSede) selectSede.value = sedeGuardada;
-            }
-            if (logoGuardado) {
-                actualizarLogoUI(logoGuardado);
-            }
-            
-            // Cargar preguntas guardadas en los inputs
-            if (preguntasGuardadas && preguntasGuardadas.length === 4) {
-                document.getElementById('input-preg-1').value = preguntasGuardadas[0];
-                document.getElementById('input-preg-2').value = preguntasGuardadas[1];
-                document.getElementById('input-preg-3').value = preguntasGuardadas[2];
-                document.getElementById('input-preg-4').value = preguntasGuardadas[3];
-            }
-            
-            actualizarDashboard();
-            renderizarTareas(); // Renderizar tabla de workflow al cargar la página
-        };
+        }
+
+        async function arrancarAdmin() {
+            try {
+                if (typeof __initial_auth_token !== 'undefined') await signInWithCustomToken(auth, __initial_auth_token);
+                else await signInAnonymously(auth);
+
+                // 1. Escuchar Encuestas Globales
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'encuestas'), (snap) => {
+                    encuestasGlobales = [];
+                    snap.forEach(d => encuestasGlobales.push({id: d.id, ...d.data()}));
+                    window.actualizarDashboard();
+                }, e => console.error(e));
+
+                // 2. Escuchar Tareas
+                onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'tareas'), (snap) => {
+                    let ts = []; snap.forEach(d => ts.push({id: d.id, ...d.data()}));
+                    ts.sort((a,b) => b.timestamp - a.timestamp);
+                    renderizarTareasData(ts);
+                }, e => console.error(e));
+
+                // 3. Escuchar Configuraciones (Logo, Sede)
+                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'general'), (snap) => {
+                    if(snap.exists()) {
+                        const d = snap.data();
+                        document.getElementById('logo-texto').textContent = d.nombre || 'UnivAdmin';
+                        document.getElementById('logo-sede').textContent = d.sede || 'Centro de Inteligencia';
+                        document.getElementById('input-nombre-institucion').value = d.nombre || 'Universidad Martin Lutero';
+                        document.getElementById('input-sede').value = d.sede || 'Central - Managua';
+                        window.actualizarLogoUI(d.logo);
+                    }
+                });
+
+                // 4. Escuchar Preguntas
+                onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'configuracion', 'preguntas'), (snap) => {
+                    if(snap.exists() && snap.data().lista) {
+                        const p = snap.data().lista;
+                        document.getElementById('input-preg-1').value = p[0]; document.getElementById('input-preg-2').value = p[1];
+                        document.getElementById('input-preg-3').value = p[2]; document.getElementById('input-preg-4').value = p[3];
+                    }
+                });
+
+            } catch(e) { console.error("Fallo de arranque", e); }
+        }
+
+        // Ejecutar al inicio
+        arrancarAdmin();
     </script>
 </body>
 </html>
