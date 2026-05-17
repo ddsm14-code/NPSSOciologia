@@ -208,6 +208,65 @@
         </div>
 
         <!-- ========================================== -->
+        <!-- VISTA 2: CONFIGURACIÓN GENERAL -->
+        <!-- ========================================== -->
+        <div id="vista-configuracion" class="seccion-vista hidden">
+            <header class="bg-white px-8 py-6 border-b border-slate-200">
+                <h1 class="text-2xl font-bold text-slate-900">Configuración General</h1>
+                <p class="text-sm text-slate-500 mt-1">Gestiona la identidad visual y detalles del recinto para los reportes.</p>
+            </header>
+            <div class="p-8 max-w-4xl">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 space-y-6">
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Nombre de la Institución</label>
+                            <select id="input-nombre-institucion" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors cursor-pointer">
+                                <option value="UnivAdmin">UnivAdmin (Predeterminado)</option>
+                                <option value="Universidad Martin Lutero">Universidad Martin Lutero</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-bold text-slate-700 mb-2">Sede / Recinto</label>
+                            <select id="input-sede" class="w-full bg-slate-50 border border-slate-300 text-slate-900 rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-3 outline-none transition-colors cursor-pointer">
+                                <option value="Centro de Inteligencia">Centro de Inteligencia (Sede Global)</option>
+                                <option value="Central - Managua">Central - Managua</option>
+                                <option value="Masaya">Masaya</option>
+                                <option value="Ocotal">Ocotal</option>
+                                <option value="León">León</option>
+                                <option value="Chinandega">Chinandega</option>
+                                <option value="El Rama">El Rama</option>
+                                <option value="Jinotega">Jinotega</option>
+                                <option value="Nueva Guinea">Nueva Guinea</option>
+                                <option value="San Carlos">San Carlos</option>
+                                <option value="Santo Tomás">Santo Tomás</option>
+                                <option value="Siuna">Siuna</option>
+                                <option value="Jalapa">Jalapa</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Logotipo de la Institución</label>
+                        <div class="flex items-center gap-4">
+                            <div class="flex-1">
+                                <input type="file" id="input-logo" accept=".jpg, .jpeg, .png, .svg" class="block w-full text-sm text-slate-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 transition-colors border border-slate-300 rounded-lg cursor-pointer bg-slate-50">
+                                <p class="mt-2 text-xs text-slate-500">Formatos recomendados: JPG, PNG o SVG. Se mostrará en la esquina superior izquierda.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="pt-6 border-t border-slate-100 flex justify-end">
+                        <button onclick="guardarConfiguracion()" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-6 rounded-lg shadow-sm shadow-blue-500/30 transition-all flex items-center gap-2">
+                            <span>💾</span> Guardar Cambios
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
         <!-- VISTA 3: PERSONALIZAR ENCUESTA -->
         <!-- ========================================== -->
         <div id="vista-personalizar" class="seccion-vista hidden">
